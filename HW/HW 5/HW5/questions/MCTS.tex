@@ -1,0 +1,161 @@
+\section{Task 1: Monte Carlo Tree Search}
+
+\subsection{Task Overview}
+This notebook implements a \textbf{MuZero-inspired reinforcement learning (RL) framework}, integrating \textbf{planning, learning, and model-based approaches}. The primary objective is to develop an RL agent that can learn from \textbf{environment interactions} and improve decision-making using \textbf{Monte Carlo Tree Search (MCTS)}.
+
+The key components of this implementation include:
+
+\subsubsection{Representation, Dynamics, and Prediction Networks}
+\begin{itemize}
+    \item Transform raw observations into \textbf{latent hidden states}.
+    \item Simulate \textbf{future state transitions} and predict \textbf{rewards}.
+    \item Output \textbf{policy distributions} (probability of actions) and \textbf{value estimates} (expected returns).
+\end{itemize}
+
+\subsubsection{Search Algorithms}
+\begin{itemize}
+    \item \textbf{Monte Carlo Tree Search (MCTS)}: A structured search algorithm that simulates future decisions and \textbf{backpropagates values} to guide action selection.
+    \item \textbf{Naive Depth Search}: A simpler approach that expands all actions up to a fixed depth, evaluating rewards.
+\end{itemize}
+
+\subsubsection{Buffer Replay (Experience Memory)}
+\begin{itemize}
+    \item Stores entire \textbf{trajectories} (state-action-reward sequences).
+    \item Samples \textbf{mini-batches} of past experiences for training.
+    \item Enables \textbf{n-step return calculations} for updating value estimates.
+\end{itemize}
+
+\subsubsection{Agent}
+\begin{itemize}
+    \item Integrates \textbf{search algorithms} and \textbf{deep networks} to infer actions.
+    \item Uses a \textbf{latent state representation} instead of raw observations.
+    \item Selects actions using \textbf{MCTS, Naive Search, or Direct Policy Inference}.
+\end{itemize}
+
+\subsubsection{Training Loop}
+\begin{enumerate}
+    \item \textbf{Step 1}: Collects trajectories through environment interaction.
+    \item \textbf{Step 2}: Stores experiences in the \textbf{replay buffer}.
+    \item \textbf{Step 3}: Samples sub-trajectories for \textbf{model updates}.
+    \item \textbf{Step 4}: Unrolls the learned model \textbf{over multiple steps}.
+    \item \textbf{Step 5}: Computes \textbf{loss functions} (policy, value, and reward prediction errors).
+    \item \textbf{Step 6}: Updates the neural network parameters.
+\end{enumerate}
+
+\textbf{Sections to be Implemented}
+
+The notebook contains several placeholders (\texttt{TODO}) for missing implementations.
+\subsection{Questions}
+
+\subsubsection{MCTS Fundamentals}
+\begin{itemize}
+    \item What are the four main phases of MCTS (Selection, Expansion, Simulation, Backpropagation), and what is the conceptual purpose of each phase?
+
+    \textbf{Answer:}
+
+    \begin{enumerate} 
+    \item \textbf{Selection}: Starting at the root node, this phase selects a child node recursively using a tree policy (typically UCB) until it reaches a leaf node. The goal is to balance exploration and exploitation while descending the tree. 
+    \item \textbf{Expansion}: If the selected node is not terminal, one or more child nodes are added to the tree. These represent new potential actions or future states not yet explored. 
+    \item \textbf{Simulation (Rollout)}: From the newly expanded node, a simulation is conducted to estimate the value of the state.
+    \item \textbf{Backpropagation}: The value obtained from the simulation is propagated back up the tree to update visit counts and value estimates for each node along the path taken. 
+    \end{enumerate}
+    
+    \item How does MCTS balance exploration and exploitation in its node selection strategy (i.e., how does the UCB formula address this balance)?
+
+    \textbf{Answer:}
+
+    
+    The Upper Confidence Bound (UCB) formula used in MCTS encourages both high-value nodes (exploitation) and rarely visited nodes (exploration). It typically takes the form:
+    \[
+    \text{UCB}(s, a) = Q(s, a) + c \cdot P(s, a) \cdot \frac{\sqrt{N(s)}}{1 + N(s, a)}
+    \]
+    where $Q(s, a)$ is the average value, $P(s, a)$ is the prior probability, $N(s)$ is the total visits to the parent, and $N(s, a)$ is the number of times action $a$ was taken. The exploration constant $c$ balances the two components.
+    
+\end{itemize}
+
+\subsubsection{Tree Policy and Rollouts}
+\begin{itemize} 
+   \item Why do we run multiple simulations from each node rather than a single simulation?  
+
+   \textbf{Answer:}
+
+   Multiple simulations reduce variance in value estimates and allow more accurate statistics to be built up for each node. This improves robustness, helps propagate reliable value information, and ensures that the most promising actions are chosen with confidence.
+
+   \item What role do random rollouts (or simulated playouts) play in estimating the value of a position?
+
+   \textbf{Answer:}
+
+   In classical MCTS, random rollouts simulate full episodes from a node to estimate the expected return. This provides a crude but fast value approximation. In Neural MCTS (like MuZero), this is replaced with a learned value function that offers a more informed and consistent estimate.
+
+\end{itemize}
+
+
+\subsubsection{Integration with Neural Networks}
+\begin{itemize}
+    \item In the context of Neural MCTS (e.g., AlphaGo-style approaches), how are policy networks and value networks incorporated into the search procedure? 
+
+    \textbf{Asnwer:}
+
+    The \textbf{policy network} provides prior probabilities for actions at each node, guiding the expansion and selection phases. The \textbf{value network} predicts the expected return from a state and is used during backpropagation to update node statistics. This integration makes the search process more efficient by using generalization rather than relying on random simulations.
+
+    \item What is the role of the policy network’s output (“prior probabilities”) in the Expansion phase, and how does it influence which moves get explored?
+
+    \textbf{Answer:}
+
+    The prior probabilities determine the initial likelihood of selecting each child during selection. These priors bias the search toward actions the policy network believes are replacing uniform random expansion with informed exploration.
+
+\end{itemize}
+
+
+\subsubsection{Backpropagation and Node Statistics}
+\begin{itemize}
+    \item During backpropagation, how do we update node visit counts and value estimates?  
+
+    \textbf{Answer:}
+
+    Each node along the simulation path increments its visit count and updates its total value sum. The value estimate $Q$ is typically the average of all returns observed through that node: 
+    \[
+    Q(s, a) = \frac{\text{total value}}{\text{visit count}}
+    \]
+
+    \item Why is it important to aggregate results carefully (e.g., averaging or summing outcomes) when multiple simulations pass through the same node?
+
+    \textbf{Answer:}
+
+    Proper aggregation ensures that each node's statistics accurately reflect the outcomes of all simulations that visited it. Without careful averaging, value estimates could become biased or noisy, leading to suboptimal action selection.
+
+\end{itemize}
+
+
+\subsubsection{Hyperparameters and Practical Considerations}
+\begin{itemize}
+    \item How does the exploration constant (often denoted \( c_{puct} \) or \( c \)) in the UCB formula affect the search behavior, and how would you tune it?  
+
+    \textbf{Answer:}
+
+    A higher \( c \) increases exploration by emphasizing the prior and penalizing high-visit nodes less. A lower \( c \) favors exploitation. This value should be tuned empirically: in sparse-reward environments, higher exploration may help early learning, while in well-understood environments, lower \( c \) accelerates convergence.
+
+    \item In what ways can the “temperature” parameter (if used) shape the final move selection, and why might you lower the temperature as training progresses?
+
+    \textbf{Answer:}
+    
+    The temperature controls the sharpness of the final policy distribution derived from visit counts. High temperature encourages exploration (softer distribution), while low temperature encourages exploitation (more deterministic). Lowering temperature over time helps the agent shift from exploration to consistent, optimal play.
+
+\end{itemize}
+
+
+\subsubsection{Comparisons to Other Methods}
+\begin{itemize}
+    \item How does MCTS differ from classical minimax search or alpha-beta pruning in handling deep or complex game trees?  
+
+    \textbf{Answer:}
+
+    Minimax and alpha-beta require evaluating every node to fixed depth and depend on a handcrafted evaluation function. MCTS selectively explores the tree, focusing on the most promising branches. This makes MCTS far more efficient in large or complex trees, especially where full depth search is infeasible.
+
+    \item What unique advantages does MCTS provide when the state space is extremely large or when an accurate heuristic evaluation function is not readily available?
+
+    \textbf{Answer:}
+
+    MCTS does not rely on a perfect heuristic and builds its value estimates through simulation. This makes it ideal for environments where heuristics are hard to design or inaccurate. Its sampling-based approach allows it to scale to massive state spaces by focusing computation where it matters most.
+
+\end{itemize}

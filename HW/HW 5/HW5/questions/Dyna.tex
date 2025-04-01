@@ -1,0 +1,106 @@
+\section{Task 2: Dyna-Q}
+
+\subsection{Task Overview} 
+In this notebook, we focus on \textbf{Model-Based Reinforcement Learning (MBRL)} methods, including \textbf{Dyna-Q} and \textbf{Prioritized Sweeping}. 
+We use the \href{https://gymnasium.farama.org/environments/toy_text/frozen_lake/}{Frozen Lake} environment from \href{https://gymnasium.farama.org}{Gymnasium}. 
+The primary setting for our experiments is the \texttt{$8 \times 8$} map, which is non-slippery as we set \texttt{is\_slippery=False}. 
+However, you are welcome to experiment with the \texttt{$4 \times 4$} map to better understand the hyperparameters.
+
+\textbf{Sections to be Implemented and Completed}
+
+This notebook contains several placeholders (\texttt{TODO}) for missing implementations as well as some markdowns (\texttt{Your Answer:}), which are also referenced in section \ref{sec:dyna-questions}.
+
+\subsubsection{Planning and Learning} 
+In the \textbf{Dyna-Q} workshop session, we implemented this algorithm for \textit{stochastic} environments. 
+You can refer to that implementation to get a sense of what you should do. 
+However, to receive full credit, you must implement this algorithm for \textit{deterministic} environments.
+
+\subsubsection{Experimentation and Exploration} 
+The \textbf{Experiments} section and \textbf{Are you having troubles?} section of this notebook are \textbf{extremely important}. 
+Your task is to explore and experiment with different hyperparameters. 
+We don't want you to blindly try different values until you find the correct solution. 
+In these sections, you must reason about the outcomes of your experiments and act accordingly. 
+The questions provided in section \ref{sec:dyna-questions} can help you focus on better solutions.
+
+\subsubsection{Reward Shaping} 
+It is no secret that \href{https://www.alexirpan.com/2018/02/14/rl-hard.html#reward-function-design-is-difficult}{Reward Function Design is Difficult} in \textbf{Reinforcement Learning}. 
+Here we ask you to improve the reward function by utilizing some basic principles. 
+To design a good reward function, you will first need to analyze the current reward signal. 
+By running some experiments, you might be able to understand the shortcomings of the original reward function.
+
+\subsubsection{Prioritized Sweeping} 
+In the \textbf{Dyna-Q} algorithm, we perform the planning steps by uniformly selecting state-action pairs. 
+You can probably tell that this approach might be inefficient. \href{http://incompleteideas.net/book/ebook/node98.html}{Prioritized Sweeping} can increase planning efficiency.
+
+\subsubsection{Extra Points} 
+If you found the previous sections too easy, feel free to use the ideas we discussed for the \textit{stochastic} version of the environment by setting \texttt{is\_slippery=True}. 
+You must implement the \textbf{Prioritized Sweeping} algorithm for \textit{stochastic} environments. 
+By combining ideas from previous sections, you should be able to solve this version of the environment as well!
+
+\subsection{Questions}\label{sec:dyna-questions} 
+You can answer the following questions in the notebook as well, but double-check to make sure you don't miss anything.
+
+\subsubsection{Experiments}
+After implementing the basic \textbf{Dyna-Q} algorithm, run some experiments and answer the following questions:
+\begin{itemize} 
+    \item How does increasing the number of planning steps affect the overall learning process? 
+
+    \textbf{Answer:}
+    Increasing the number of planning steps allows the agent to simulate more transitions using its internal model without interacting with the environment. This generally accelerates learning by reinforcing known experiences and propagating value updates faster throughout the state space.
+    
+    \item What would happen if we trained on the slippery version of the environment, assuming we \textbf{didn't} change the \textit{deterministic} nature of our algorithm? 
+
+    \textbf{Answer:}
+    
+    If we use a deterministic Dyna-Q algorithm in a stochastic environment, the learned model will likely be inaccurate, since it only memorizes the first observed transition for each $(s, a)$ pair. As a result, the agent’s planning will reinforce incorrect assumptions about the environment.
+
+    \item Does planning even help for this specific environment? How so? (Hint: analyze the reward signal) 
+
+    \textbf{Answer:}
+    
+    Yes, planning helps significantly in the deterministic Frozen Lake environment. Since the environment is predictable, once the agent experiences a transition, it can confidently simulate it multiple times through planning. This leads to faster value propagation and reduces the number of real environment steps required to learn an optimal policy. However, if the reward signal is sparse, planning has limited benefit until the agent has experienced a successful episode at least once.
+
+    \item Assuming it takes $N_1$ episodes to reach the goal for the first time, and from then it takes $N_2$ episodes to reach the goal for the second time, explain how the number of planning steps $n$ affects $N_1$ and $N_2$.
+
+    \textbf{Answer:}
+
+    The number of planning steps $n$ has little to no impact on $N_1$, because before the first successful episode, the agent has not yet experienced any meaningful reward. However, $n$ significantly affects $N_2$: once the agent reaches the goal once and experiences a positive reward, a higher $n$ allows this reward to propagate more effectively to other relevant states. As a result, $N_2$ decreases rapidly with higher $n$ values.
+
+\end{itemize}
+
+\vspace*{0.3cm}
+\subsubsection{Improvement Strategies}
+Explain how each of these methods might help us with solving this environment:
+\begin{itemize} 
+    \item Adding a baseline to the Q-values. 
+
+    \textbf{Answer:}
+    
+    A baseline can stabilize learning by centering value updates around a reference point. This may reduce variance in updates and encourage better credit assignment, especially in environments with sparse rewards.
+
+
+    \item Changing the value of $\varepsilon$ over time or using a policy other than the $\varepsilon$-greedy policy. 
+
+    \textbf{Answer:}
+    
+    Reducing $\varepsilon$ over time allows the agent to explore more in the early stages and exploit its knowledge later. More sophisticated policies can make more informed decisions, balancing exploration and exploitation based on Q-values rather than fixed randomness.
+    
+    \item Changing the number of planning steps $n$ over time. 
+
+    \textbf{Answer:}
+    
+    Starting with a small $n$ can prevent overfitting to an initially inaccurate model, while increasing $n$ as the model becomes more accurate allows for better planning and faster convergence. This adaptive approach can yield more stable and efficient learning.
+
+    \item Modifying the reward function. 
+
+    \textbf{Answer:}
+    
+    Reward shaping can guide the agent toward more promising behaviors. For example, assigning small penalties for stepping on frozen tiles or bonuses for reaching intermediate states could accelerate learning and improve exploration. However, shaping must be done carefully to avoid altering the optimal policy.
+
+    \item Altering the planning function to prioritize some state–action pairs over others. (Hint: explain how \textbf{Prioritized Sweeping} helps) 
+
+    \textbf{Ansewr:}
+
+    Prioritized Sweeping improves planning efficiency by focusing updates on state–action pairs that are most likely to impact the value function significantly. This avoids spending planning steps on irrelevant or already learned transitions and allows the agent to converge faster with fewer planning updates.
+
+\end{itemize}
