@@ -1,0 +1,547 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{amsmath, amsfonts, amssymb, mathtools}
+\usepackage{fancyhdr, setspace, parskip}
+\usepackage{graphicx, caption, subfig, array, multirow}
+\usepackage{hyperref, enumitem, cancel}
+\usepackage[T1]{fontenc}
+\usepackage{tgtermes}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tocloft}
+\usepackage{titlesec}
+\usepackage{lipsum}  
+\setcounter{section}{-1}
+
+\definecolor{DarkBlue}{RGB}{10, 0, 80}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=DarkBlue,
+    filecolor=BrickRed,      
+    urlcolor=RoyalBlue,
+}
+
+
+% Header and footer customization
+\fancyhead{}
+\fancyhead[L]{
+{\fontfamily{lmss}{\color{DarkBlue}
+\textbf{\leftmark}
+}}
+}
+\fancyhead[R]{
+{\fontfamily{ppl}\selectfont {\color{DarkBlue}
+{Deep RL [Spring 2025]}
+}}
+}
+
+\fancyfoot{}
+\fancyfoot[C]{
+{\fontfamily{lmss}{\color{BrickRed}
+\textbf{\thepage}
+}}
+}
+
+\renewcommand{\sectionmark}[1]{ \markboth{\thesection\quad #1}{} }
+
+\renewcommand{\headrule}{{\color{BrickRed}\hrule width\headwidth height 0.5pt}}
+\renewcommand{\footrulewidth}{0pt}
+
+
+% Table of Contents customizations
+\renewcommand{\cftsecafterpnum}{\vskip6pt}
+\renewcommand{\cftsubsecafterpnum}{\vskip3pt}
+\renewcommand{\cftsubsubsecafterpnum}{\vskip3pt}
+\renewcommand{\cftsecfont}{\sffamily\large}
+\renewcommand{\cftsubsecfont}{\sffamily}
+\renewcommand{\cftsubsubsecfont}{\sffamily}
+% \renewcommand{\cftsecdotsep}{1}
+\renewcommand{\cftsubsecdotsep}{1}
+\renewcommand{\cftsubsubsecdotsep}{1}
+
+
+% Section title styles
+\titleformat*{\section}{\LARGE\bfseries\color{DarkBlue}}
+\titleformat*{\subsection}{\Large\bfseries\color{DarkBlue}}
+\titleformat*{\subsubsection}{\large\bfseries\color{DarkBlue}}
+
+\definecolor{light-gray}{gray}{0.95}
+\newcommand{\code}[1]{\colorbox{light-gray}{\texttt{#1}}}
+
+% Start of the document
+\pagestyle{fancy}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\pagenumbering{gobble}
+\thispagestyle{plain}
+
+\begin{center}
+
+\vspace*{-1.5cm}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figs/cover-std.png}
+\end{figure}
+
+{
+\fontfamily{ppl}
+
+{\color{DarkBlue} {\fontsize{30}{50} \textbf{
+Deep Reinforcement Learning
+}}}
+
+{\color{DarkBlue} {\Large
+Professor Mohammad Hossein Rohban
+}}
+}
+
+
+\vspace{20pt}
+
+{
+\fontfamily{lmss}
+
+
+{\color{RedOrange}
+{\Large
+Homework 6:
+}\\
+}
+{\color{BrickRed}
+\rule{12cm}{0.5pt}
+
+{\Huge
+Multi-Armed Bandits
+}
+\rule{12cm}{0.5pt}
+}
+
+\vspace{10pt}
+
+{\color{RoyalPurple} { \small By:} } \\
+\vspace{10pt}
+
+{\color{Blue} { \LARGE Parsa Ghezelbash } } \\
+\vspace{5pt}
+{\color{RoyalBlue} { \Large 401110437 } }
+
+
+\vspace*{\fill}
+\begin{center}
+\begin{tabular}{ccc}
+    \includegraphics[width=0.14\linewidth]{figs/sharif-logo.png} & \includegraphics[width=0.14\linewidth]{figs/riml-logo.png} & \includegraphics[width=0.14\linewidth]{figs/dlr-logo.png} \\
+\end{tabular}
+\end{center}
+
+
+\vspace*{-.25cm}
+
+{\color{YellowOrange} {
+\rule{10cm}{0.5pt} \\
+\vspace{2pt}
+\large Spring 2025}
+}}
+\vspace*{-1cm}
+
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newpage
+\pagenumbering{gobble}
+\thispagestyle{plain}
+{\fontfamily{lmss}\selectfont {\color{BrickRed} \textbf{\tableofcontents} }}
+
+{\fontfamily{lmss}\selectfont {\color{DarkBlue}
+
+\subsection*{Grading}
+
+The grading will be based on the following criteria, with a total of 105.25 points:
+
+\[
+\begin{array}{|l|l|}
+\hline
+\textbf{Task} & \textbf{Points} \\
+\hline
+\text{Task 1: Oracle Agent} & 3.5 \\
+\text{Task 2: Random Agent} & 2 \\
+\text{Task 3: Explore-First Agent} & 5.75 \\
+\text{Task 4: UCB Agent} & 7 \\
+\text{Task 5: Epsilon-Greedy Agent} & 2.25 \\
+\text{Task 6: LinUCB Agent} & 27.5 \\
+\text{Task 7: Final Comparison and Analysis} & 6 \\
+\text{Task 8: Final Deep-Dive Questions} & 41.25
+ \\
+\hline
+\text{Clarity and Quality of Code} & 5 \\
+\text{Clarity and Quality of Report} & 5 \\
+\hline
+\text{Bonus 1: Writing your report in Latex } & 10 \\
+\hline
+\end{array}
+\]
+
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\pagenumbering{arabic}
+
+{\fontfamily{lmss}\selectfont {\color{DarkBlue}
+
+\section{Task 0: MAB Overview}
+\begin{itemize}
+    \item Questions:
+    \begin{itemize}
+        \item How might the performance of different agents change if the distribution of probabilities were not uniform?
+        \item Why does the MAB environment use a simple binary reward mechanism (1 or 0)?
+    \end{itemize}
+\end{itemize}
+
+\section{Task 1: Oracle Agent}
+\begin{itemize}[noitemsep]
+    \item The Oracle uses privileged information to determine the maximum expected reward.
+    \item \textbf{TODO:} Compute the oracle reward (2 points).
+    \item Questions:
+    \begin{itemize}[noitemsep]
+        \item What insight does the oracle reward provide? (0.75 points)
+
+        \textbf{Answer:}
+
+        It says that the maximum reward per step can't exceed 0.9636627605010293.
+        
+        \item Why is the oracle considered “cheating”? (0.75 points)
+
+        \textbf{Answer:}
+
+        Because it knows the distribution of probabilities and uses it to do the best action.
+        
+    \end{itemize}
+\end{itemize}
+
+\section{Task 2: Random Agent (RndAg)}
+\begin{itemize}[noitemsep]
+    \item This agent selects actions uniformly at random.
+    \item \textbf{TODO:} Choose a random action (1 point).
+    \item Questions:
+    \begin{itemize}[noitemsep]
+        \item Why is its reward lower and highly variable? (0.25 points)
+        \item How could the agent be improved without learning? (0.75 points)
+    \end{itemize}
+\end{itemize}
+
+\section{Task 3: Explore-First Agent (ExpFstAg)}
+\begin{itemize}[noitemsep]
+    \item The agent explores randomly for a fixed number of steps and then exploits the best arm.
+    \item \textbf{TODOs:}
+    \begin{itemize}[noitemsep]
+        \item Update Q-value (3 points)
+        \item Choose action based on exploration versus exploitation (1 point)
+    \end{itemize}
+    \item Questions:
+    \begin{itemize}[noitemsep]
+        \item Why might the early exploration phase (e.g., 5 steps) lead to high fluctuations in the reward curve?  (0.75 points)
+
+        \textbf{Answer:}
+
+        Because the agent collects only a small number of samples for each arm, the estimates of expected rewards are highly noisy. As a result, the agent may prematurely commit to a suboptimal arm, causing large fluctuations in performance when exploitation begins.
+
+        \item What are the trade-offs of using a fixed exploration phase? (1 point)
+
+        \textbf{Answer:}
+
+        A short exploration phase allows quicker exploitation, but increases the risk of selecting a suboptimal arm. A longer exploration phase improves accuracy in estimating arm values but delays exploitation and may reduce cumulative reward in the short term.
+
+        \item How does increasing max\_ex affect the convergence of the agent’s performance?
+
+        \textbf{Answer:}
+        
+        Increasing \texttt{max\_ex} allows the agent to gather more accurate reward estimates, which improves the likelihood of selecting the optimal arm. This can enhance long-term performance and stability but delays convergence since exploitation starts later.
+
+        \item In real-world scenarios, what challenges might arise in selecting the optimal exploration duration?
+
+        \textbf{Answer:}
+
+        Real-world environments are often non-stationary or partially observable, making it hard to determine when exploration should stop.
+
+    \end{itemize}
+\end{itemize}
+
+\section{Task 4: UCB Agent (UCB\_Ag)}
+\begin{itemize}[noitemsep]
+    \item Uses an exploration bonus to balance learning.
+    \item \textbf{TODOs:}
+    \begin{itemize}[noitemsep]
+        \item Update Q-value (3 points)
+        \item Compute the exploration bonus (4 points)
+    \end{itemize}
+\end{itemize}
+
+\section{Task 5: UCB vs ExpFstAg}
+\begin{itemize}
+    \item Questions:
+    \begin{itemize}
+        \item Why does UCB learn slowly (even after 500 steps, not reaching maximum reward)?
+        *Hint:* Consider the conservative nature of the exploration bonus.
+
+        \textbf{Answer:}
+
+        UCB is designed to balance exploration and exploitation based on uncertainty. Early on, the exploration bonus is large, encouraging broad sampling. However, UCB remains cautious by continuing to allocate some probability to underexplored arms even when a good arm has already been identified. This conservative exploration slows convergence, especially in finite-time scenarios.
+
+        \item Under what conditions might an explore-first strategy outperform UCB, despite UCB’s theoretical optimality?
+
+        \textbf{Answer:}
+        
+        If the optimal arm can be identified reliably with a small number of exploratory samples, the Explore-First Agent (ExpFstAg) may quickly lock onto it and outperform UCB in terms of cumulative reward. This often happens in environments where the differences between arm rewards are large and noise is low.
+
+        \item How do the design choices of each algorithm affect their performance in short-term versus long-term scenarios?
+
+        \textbf{Answer:}
+        
+        ExpFstAg frontloads exploration, allowing for rapid exploitation which benefits short-term reward. However, it is rigid and cannot adapt if initial estimates are inaccurate. UCB, on the other hand, continues to explore, which may reduce short-term reward but leads to better long-term performance.
+
+        \item What happens if we let ExpFstAg explore for 20 steps? Compare its reward to UCB.
+
+        \textbf{Answer:}
+
+        With 20 exploration steps, ExpFstAg has more opportunity to estimate the reward of each arm accurately. The additional data improves arm selection, the agent outperforms UCB in cumulative reward from early stages.
+                
+        \item What impact does increasing the exploration phase to 20 steps have compared to 5 steps?
+
+        \textbf{Answer:}
+
+        Increasing the exploration phase generally reduces the variance in reward estimates, making it more likely the agent picks the best arm. While this delays exploitation.
+
+        \item How can you determine the optimal balance between exploration and exploitation in practice?
+
+        \textbf{Answer:}
+
+        The optimal balance is typically determined empirically through cross-validation or hyperparameter tuning.
+        
+        \item We know that UCB is optimal. Why might ExpFstAg perform better in practice? (Discuss how hyperparameter tuning and early exploitation can sometimes yield higher rewards in finite-time scenarios.)
+
+        \textbf{Answer:}
+
+        UCB's optimality is asymptotic, meaning it guarantees low regret in the long run. In practice, with limited time or episodes, a well-tuned ExpFstAg can exploit early gains by quickly settling on a good arm. If the exploration phase is sufficient, it can outperform UCB due to faster exploitation and reduced conservative sampling.
+
+    \end{itemize}
+\end{itemize}
+
+\section{Task 6: Epsilon-Greedy Agent (EpsGdAg)}
+\begin{itemize}[noitemsep]
+    \item Selects the best-known action with probability \(1-\varepsilon\) and a random action with probability \(\varepsilon\).
+    \item \textbf{TODO:} Choose a random action based on \(\varepsilon\) (1 point)
+    \item Questions:
+    \begin{itemize}[noitemsep]
+        \item Why does a high \(\varepsilon\) result in lower immediate rewards? (0.5 points)
+
+        \textbf{Answer:}
+
+        A high \(\varepsilon\) causes the agent to select random actions more frequently, which increases the likelihood of choosing suboptimal arms. As a result, the immediate rewards are lower because the agent does not consistently exploit the best-known arm.
+
+        \item What benefits might decaying \(\varepsilon\) over time offer? (0.75 points)
+
+        \textbf{Answer:}
+
+        Decaying \(\varepsilon\) allows the agent to explore more during the early stages and gradually shift toward exploitation. This balances exploration and exploitation more effectively, improving long-term reward.
+
+        \item How do the reward curves for different \(\varepsilon\) values reflect the exploration–exploitation balance? (1.25 points)
+
+        \textbf{Answer:}
+
+        Higher \(\varepsilon\) values lead to flatter reward curves initially due to more exploration and noise. Lower \(\varepsilon\) curves tend to rise more quickly if the agent exploits a good arm early, but may plateau at suboptimal levels due to insufficient exploration like \(\varepsilon = 0.4,0.2\). the best reward was reached by \(\varepsilon = 0.1\). 
+
+        \item Under what circumstances might you choose a higher \(\varepsilon\) despite lower average reward? (1.25 points)
+
+        \textbf{Answer:}
+
+        In environments where arm rewards are close together or highly non-stationary, a higher \(\varepsilon\) ensures continued exploration and adaptability.
+
+    \end{itemize}
+\end{itemize}
+
+\section{Task 7: LinUCB Agent (Contextual Bandits)}
+\begin{itemize}[noitemsep]
+    \item Leverages contextual features using a linear model.
+    \item \textbf{TODOs:}
+    \begin{itemize}[noitemsep]
+        \item Compute UCB for an arm given context (7 points)
+        \item Update parameters \(A\) and \(b\) for an arm (7 points)
+        \item Compute UCB estimates for all arms (7 points)
+        \item Choose the arm with the highest UCB (4 points)
+    \end{itemize}
+    \item Questions:
+    \begin{itemize}[noitemsep]
+        \item How does LinUCB leverage context to outperform classical bandit algorithms? (1.25 points)
+
+        \textbf{Answer:}
+
+        LinUCB uses contextual features to make arm selection decisions based on the current state, rather than relying solely on average rewards. By learning a separate linear model for each arm, it can generalize from past experiences to similar contexts.
+
+        \item What is the role of the \(\alpha\) parameter in LinUCB, and how does it affect the exploration bonus? (1.25 points)
+
+        \textbf{Answer:}
+
+        The \(\alpha\) parameter controls the trade-off between exploration and exploitation. It scales the uncertainty term in the UCB estimate. A larger \(\alpha\) encourages more exploration, while a smaller \(\alpha\) leads to more greedy behavior focused on estimated rewards.
+
+        \item What does \(\alpha\) affect in LinUCB?  (1.25 points)
+
+        \textbf{Answer:}
+
+        \(\alpha\) directly affects how aggressively the agent explores uncertain arms. It determines the magnitude of the confidence interval added to the expected reward when calculating the UCB.
+        
+        \item Do the reward curves change with \(\alpha\)? Explain why or why not. (1.25 points)
+
+        \textbf{Answer:}
+        
+        Yes, reward curves change with \(\alpha\). A small \(\alpha\) leads to faster initial gains (like \(\alpha=0.01, 0.1\) but may get stuck in local optima, while a large \(\alpha\) results in lower short-term rewards due to heavy exploration, but potentially better long-term performance if continued.
+        
+        \item Based on your experiments, does LinUCB outperform the standard UCB algorithm? Why or why not? (1.25 points)
+
+        \textbf{Answer:}
+
+        Yes, In my experiment LinUCB reached a better reward with less regret and smoother reward curve. Because it uses richer contextual information to guide decisions.
+
+        \item What are the key limitations of each algorithm, and how would you choose between them for a given application? (1.25 points)
+
+        \textbf{Answer:}
+
+        UCB is simple and effective in low-dimensional and context-free environments, but cannot leverage rich features. LinUCB is more powerful in contextual settings but can be computationally expensive. If the application involves rich user or environmental context, LinUCB is preferred. In simpler or highly noisy settings with small feature dimension, classic UCB is preferred.
+        
+    \end{itemize}
+\end{itemize}
+
+\section{Task 8: Final Deep-Dive Questions}
+\begin{itemize}[noitemsep]
+    \item \textbf{Finite-Horizon Regret and Asymptotic Guarantees} (4 points)
+    
+    \vspace{0.25cm}
+    Many algorithms (e.g., UCB) are analyzed using asymptotic (long‑term) regret bounds. In a finite‑horizon scenario (say, 500–1000 steps), explain intuitively why an algorithm that is asymptotically optimal may still yield poor performance. What trade‑offs arise between aggressive early exploration and cautious long‑term learning?
+    Deep Dive:
+    Discuss how the exploration bonus, tuned for asymptotic behavior, might delay exploitation in finite time, leading to high early regret despite eventual convergence.
+    \vspace{0.5cm}
+
+    \textbf{Answer:}
+
+    Asymptotically optimal algorithms like UCB are designed to minimize regret over an infinite time horizon. However, in finite-horizon scenarios, the exploration bonus may cause the algorithm to continue trying suboptimal arms longer than necessary. This delays exploitation of the best arm and increases short-term regret. The trade-off is between aggressive early exploration (to ensure long-term learning) and immediate performance. A high exploration bonus tuned for asymptotic behavior might result in overly cautious exploitation in the early phases.
+    
+    \item \textbf{Hyperparameter Sensitivity and Exploration–Exploitation Balance} (4.5 points)
+
+    \vspace{0.25cm}
+    Consider the impact of hyperparameters such as $\epsilon$ in $\epsilon$‑greedy, the exploration constant in UCB, and the $\alpha$ parameter in LinUCB. Explain intuitively how slight mismatches in these parameters can lead to either under‑exploration (missing the best arm) or over‑exploration (wasting pulls on suboptimal arms). How would you design a self‑adaptive mechanism to balance this trade‑off in practice?
+    Deep Dive:
+    Provide insight into the “fragility” of these parameters in finite runs and how a meta‑algorithm might monitor performance indicators (e.g., variance in rewards) to adjust its exploration dynamically.
+    \vspace{0.5cm}
+
+    \textbf{Answer:}
+
+    Hyperparameters like \(\epsilon\) in \(\epsilon\)-greedy, the exploration constant in UCB, and \(\alpha\) in LinUCB critically affect the balance between exploration and exploitation. Slight mismatches can lead to under-exploration (missing the optimal arm) or over-exploration (wasting time on bad arms). In finite runs, these parameters are fragile, small errors in tuning can severely hurt performance. A self-adaptive mechanism could monitor reward variance, convergence of Q-values, or rate of change in estimated rewards, and adjust exploration dynamically, for example decaying \(\epsilon\) or adjusting \(\alpha\) based on stability.
+    
+    \item \textbf{Context Incorporation and Overfitting in LinUCB} (4 points)
+
+    \vspace{0.25cm}
+    LinUCB uses context features to estimate arm rewards, assuming a linear relation. Intuitively, why might this linear assumption hurt performance when the true relationship is complex or when the context is high‑dimensional and noisy? Under what conditions can adding context lead to worse performance than classical (context‑free) UCB?
+    Deep Dive:
+    Discuss the risk of overfitting to noisy or irrelevant features, the curse of dimensionality, and possible mitigation strategies (e.g., dimensionality reduction or regularization).
+    \vspace{0.5cm}
+
+    \textbf{Answer:}
+
+    LinUCB assumes a linear relationship between context and reward, which can hurt performance if the true relation is non-linear or if the context is high-dimensional and noisy. In such cases, LinUCB might overfit and fail to generalize. Contextual information can reduce performance if it adds noise or irrelevant features. The curse of dimensionality increases estimation variance, especially with limited data. Mitigation strategies include feature selection, regularization, or using dimensionality reduction techniques like PCA.
+
+    \item \textbf{Adaptive Strategy Selection} (4.25 points)
+
+    \vspace{0.25cm}
+    Imagine designing a hybrid bandit agent that can switch between an explore‑first strategy and UCB based on observed performance. What signals (e.g., variance of reward estimates, stabilization of Q‑values, or sudden drops in reward) might indicate that a switch is warranted? Provide an intuitive justification for how and why such a meta‑strategy might outperform either strategy alone in a finite‑time setting.
+    Deep Dive:
+    Explain the challenges in detecting when exploration is “enough” and how early exploitation might capture transient improvements even if the long‑term guarantee favors UCB.
+    \vspace{0.5cm}
+
+    \textbf{Answer:}
+
+    A hybrid strategy could monitor metrics like reward variance, Q-value stabilization, or reward drops to decide when to switch from explore-first to UCB. For instance, if the variance of rewards or changes in Q-values fall below a threshold, it might indicate sufficient exploration. Early exploitation might capture transient rewards that UCB would delay discovering. Such a meta-strategy could outperform either algorithm by being more responsive to observed data.
+
+    \item \textbf{Non-Stationarity and Forgetting Mechanisms} (4 points)
+
+    \vspace{0.25cm}
+    In non‑stationary environments where reward probabilities drift or change abruptly, standard bandit algorithms struggle because they assume stationarity. Intuitively, explain how and why a “forgetting” or discounting mechanism might improve performance. What challenges arise in choosing the right decay rate, and how might it interact with the exploration bonus?
+    Deep Dive:
+    Describe the delicate balance between retaining useful historical information and quickly adapting to new trends, and the potential for “chasing noise” if the decay is too aggressive.
+    \vspace{0.5cm}
+
+    \textbf{Answer:}
+
+    In non-stationary environments, past data may become outdated. Forgetting mechanisms, such as exponential decay or sliding windows, prioritize recent information. This improves adaptability, but the decay rate must be chosen carefully. Too aggressive decay leads to chasing noise, while too slow decay fails to adapt to changes. A well-tuned mechanism balances retaining useful data with being responsive to change.
+
+    \item \textbf{Exploration Bonus Calibration in UCB} (3.75 points)
+
+    \vspace{0.25cm}
+    The UCB algorithm adds a bonus term that decreases with the number of times an arm is pulled. Intuitively, why might a “conservative” (i.e., high) bonus slow down learning—even if it guarantees asymptotic optimality? Under what circumstances might a less conservative bonus be beneficial, and what risks does it carry?
+    Deep Dive:
+    Analyze how a high bonus may force the algorithm to continue sampling even when an arm’s estimated reward is clearly suboptimal, thereby delaying convergence. Conversely, discuss the risk of prematurely discarding an arm if the bonus is too low.
+    \vspace{0.5cm}
+
+    \textbf{Answer:}
+
+    A conservative (high) exploration bonus causes the UCB agent to over-sample uncertain arms, even if they appear suboptimal, which slows down learning. In contrast, a lower bonus may speed up convergence but risks prematurely discarding potentially good arms due to variance. In practice, tuning the bonus is crucial to balance exploration with convergence speed.
+
+    \item \textbf{Exploration Phase Duration in Explore-First Strategies} (4 points)
+    
+    \vspace{0.25cm}
+    In the Explore‑First agent (ExpFstAg), how does the choice of a fixed exploration period (e.g., 5 vs. 20 steps) affect the regret and performance variability? Provide a scenario in which a short exploration phase might yield unexpectedly high regret, and another scenario where a longer phase might delay exploitation unnecessarily.
+    Deep Dive:
+    Discuss how the “optimal” exploration duration can depend heavily on the underlying reward distribution’s variance and the gap between the best and other arms, and why a one‑size‑fits‑all approach may not work in practice.
+    \vspace{0.5cm}
+
+    \textbf{Answer:}
+
+    A short exploration phase may yield high regret if the best arm is under-sampled early, especially when arm means are close or noisy. A longer phase provides better estimates but delays exploitation. The optimal duration depends on the variance in rewards and the expected gap between the best and other arms. A fixed phase may not generalize across environments, suggesting adaptive exploration durations might be better.
+
+    \item \textbf{Bayesian vs. Frequentist Approaches in MAB} (4 points)
+    
+    \vspace{0.25cm}
+    Compare the intuition behind Bayesian approaches (such as Thompson Sampling) to frequentist methods (like UCB) in handling uncertainty. Under what conditions might the Bayesian approach yield superior practical performance, and how do the underlying assumptions about prior knowledge influence the exploration–exploitation balance?
+    Deep Dive:
+    Explore the benefits of incorporating prior beliefs and the risk of bias if the prior is mis-specified, as well as how Bayesian updating naturally adjusts the exploration bonus as more data is collected.
+    \vspace{0.5cm}
+
+    \textbf{Answer:}
+
+    Bayesian methods like Thompson Sampling use prior distributions to model uncertainty, adapting exploration based on posterior updates. They can outperform frequentist methods when prior knowledge is informative or when adaptive exploration is beneficial. However, mis-specified priors can bias learning. Bayesian updates naturally adjust exploration over time by sampling from adjustable distributions, while frequentist methods use fixed bonuses or rules.
+
+    \item \textbf{Impact of Skewed Reward Distributions} (3.75 points)
+    
+    \vspace{0.25cm}
+    In environments where one arm is significantly better (skewed probabilities), explain intuitively why agents like UCB or ExpFstAg might still struggle to consistently identify and exploit that arm. What role does variance play in these algorithms, and how might the skew exacerbate errors in reward estimation?
+    Deep Dive:
+    Discuss how the variability of rare but high rewards can mislead the agent’s estimates and cause prolonged exploration of suboptimal arms.
+    \vspace{0.5cm}
+
+    \textbf{Answer:}
+
+    When one arm is significantly better, Algorithms like UCB may continue exploring suboptimal arms due to conservative bonuses, especially if the best arm has high variance. This delays convergence and can cause extended regret. Skewed distributions also lead to biased Q-values in early stages, increasing the chance of misidentifying the best arm.
+
+    \item \textbf{Designing for High-Dimensional, Sparse Contexts} (5 points)
+    
+    \vspace{0.25cm}
+    In contextual bandits where the context is high-dimensional but only a few features are informative, what are the intuitive challenges that arise in using a linear model like LinUCB? How might techniques such as feature selection, regularization, or non-linear function approximation help, and what are the trade-offs involved?
+    Deep Dive:
+    Provide insights into the risks of overfitting versus underfitting, the increased variance in estimates from high-dimensional spaces, and the potential computational costs versus performance gains when moving from a simple linear model to a more complex one.
+    \vspace{0.5cm}
+
+    \textbf{Answer:}
+    
+    In high-dimensional but sparse contexts, LinUCB may struggle due to overfitting, increased estimation variance, and high computational cost. Only a few features may be truly informative, so irrelevant ones dilute learning. Regularization can reduce overfitting, feature selection improves relevance, and non-linear methods (for example neural networks or kernels) offer better performance. However, these add computational overhead and may require more data to generalize well.
+\end{itemize}
+
+}}
+
+\end{document}
