@@ -1,0 +1,822 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{amsmath, amsfonts, amssymb, mathtools, amsthm}
+\usepackage{fancyhdr, setspace, parskip}
+\usepackage{graphicx, caption, subfig, array, multirow}
+\usepackage{hyperref, enumitem, cancel}
+\usepackage[T1]{fontenc}
+\usepackage{tgtermes}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tocloft}
+\usepackage{titlesec}
+\usepackage{lipsum}  
+
+\definecolor{DarkBlue}{RGB}{10, 0, 80}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=DarkBlue,
+    filecolor=BrickRed,      
+    urlcolor=RoyalBlue,
+}
+
+
+% Header and footer customization
+\fancyhead{}
+\fancyhead[L]{
+{\fontfamily{lmss}{\color{DarkBlue}
+\textbf{\leftmark}
+}}
+}
+\fancyhead[R]{
+{\fontfamily{ppl}\selectfont {\color{DarkBlue}
+{Deep RL Course [Spring 2025]}
+}}
+}
+
+\fancyfoot{}
+\fancyfoot[C]{
+{\fontfamily{lmss}{\color{BrickRed}
+\textbf{\thepage}
+}}
+}
+
+\renewcommand{\sectionmark}[1]{ \markboth{\thesection\quad #1}{} }
+
+\renewcommand{\headrule}{{\color{BrickRed}\hrule width\headwidth height 0.5pt}}
+\renewcommand{\footrulewidth}{0pt}
+
+
+% Table of Contents customizations
+\renewcommand{\cftsecafterpnum}{\vskip6pt}
+\renewcommand{\cftsubsecafterpnum}{\vskip3pt}
+\renewcommand{\cftsubsubsecafterpnum}{\vskip3pt}
+\renewcommand{\cftsecfont}{\sffamily\large}
+\renewcommand{\cftsubsecfont}{\sffamily}
+\renewcommand{\cftsubsubsecfont}{\sffamily}
+% \renewcommand{\cftsecdotsep}{1}
+\renewcommand{\cftsubsecdotsep}{1}
+\renewcommand{\cftsubsubsecdotsep}{1}
+
+
+% Section title styles
+\titleformat*{\section}{\LARGE\bfseries\color{DarkBlue}}
+\titleformat*{\subsection}{\Large\bfseries\color{DarkBlue}}
+\titleformat*{\subsubsection}{\large\bfseries\color{DarkBlue}}
+
+\definecolor{light-gray}{gray}{0.95}
+\newcommand{\code}[1]{\colorbox{light-gray}{\texttt{#1}}}
+
+% Start of the document
+\pagestyle{fancy}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\pagenumbering{gobble}
+\thispagestyle{plain}
+
+\begin{center}
+
+\vspace*{-1.5cm}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figs/cover-std.png}
+\end{figure}
+
+{
+\fontfamily{ppl}
+
+{\color{DarkBlue} {\fontsize{30}{50} \textbf{
+Deep Reinforcement Learning
+}}}
+
+{\color{DarkBlue} {\Large
+Professor Mohammad Hossein Rohban
+}}
+}
+
+
+\vspace{20pt}
+
+{
+\fontfamily{lmss}
+
+
+{\color{RedOrange}
+{\Large
+Homework 9:
+}\\
+}
+{\color{BrickRed}
+\rule{12cm}{0.5pt}
+
+{\Huge
+Exploration Methods
+}
+\rule{12cm}{0.5pt}
+}
+
+\vspace{10pt}
+
+{\color{RoyalPurple} { \small By:} } \\
+\vspace{10pt}
+
+{\color{Blue} { \LARGE Parsa Ghezeslbash } } \\
+\vspace{5pt}
+{\color{RoyalBlue} { \Large 401110437 } }
+
+
+\vspace*{\fill}
+\begin{center}
+\begin{tabular}{ccc}
+    \includegraphics[width=0.14\linewidth]{figs/sharif-logo.png} & \includegraphics[width=0.14\linewidth]{figs/riml-logo.png} & \includegraphics[width=0.14\linewidth]{figs/dlr-logo.png} \\
+\end{tabular}
+\end{center}
+
+
+\vspace*{-.25cm}
+
+{\color{YellowOrange} {
+\rule{10cm}{0.5pt} \\
+\vspace{2pt}
+\large Spring 2025}
+}}
+\vspace*{-1cm}
+
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\pagenumbering{gobble}
+\thispagestyle{plain}
+{\fontfamily{lmss}\selectfont {\color{BrickRed} \textbf{\tableofcontents} }}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\pagenumbering{arabic}
+
+{\fontfamily{lmss}\selectfont {\color{DarkBlue}
+\noindent\rule{\textwidth}{1.5pt}
+
+
+\section{Light-tailed Distributions[25-points]}
+\noindent\rule{\textwidth}{1.5pt}
+\noindent\rule{\textwidth}{0.2pt}
+\subsection{Hoeffding's Inequality[10-points]}
+\subsubsection{a)[6-points]}
+For a random variable \( X \) with \( \mathbb{E}[X] = 0 \) and \( a \leq X \leq b \), we prove that for any \( s > 0 \),
+\[
+\mathbb{E}[e^{sX}] \leq \exp\left( \frac{s^2 (b - a)^2}{8} \right).
+\]
+
+\begin{proof}
+Assume \( a < b \) (the equality case is trivial). Since \( \mathbb{E}[X] = 0 \) and \( a \leq X \leq b \), we must have \( a < 0 < b \). Consider the two-point distribution:
+\[
+P(X' = a) = \frac{b}{b - a}, \quad P(X' = b) = \frac{-a}{b - a}.
+\]
+This satisfies \( \mathbb{E}[X'] = 0 \). Let \( D = b - a > 0 \) and \( w = -a/D \) (\( 0 < w < 1 \)), so \( a = -wD \), \( b = (1-w)D \). The MGF is:
+\[
+\mathbb{E}[e^{sX'}] = (1-w)e^{-swD} + we^{s(1-w)D}.
+\]
+Set \( t = sD \) and define:
+\[
+k(t) = \ln\left((1-w)e^{-wt} + we^{(1-w)t}\right).
+\]
+Then \( k(0) = 0 \), \( k'(0) = 0 \), and the second derivative satisfies \( k''(t) \leq \frac{1}{4} \). By Taylor's theorem:
+\[
+k(t) = \frac{1}{2}k''(\xi)t^2 \leq \frac{t^2}{8} = \frac{s^2D^2}{8} = \frac{s^2(b-a)^2}{8}.
+\]
+Thus \( \mathbb{E}[e^{sX'}] \leq \exp\left(\frac{s^2(b-a)^2}{8}\right) \). For general \( X \), this bound holds due to convexity of the exponential function.
+\end{proof}
+
+\subsubsection{b)[4-points]}
+Let \( Z_1, \ldots, Z_n \) be independent random variables with \( Z_i \in [a, b] \) for all \( i \), where \( -\infty < a \leq b < \infty \). For all \( t \geq 0 \):
+\[
+\mathbb{P} \left( \frac{1}{n} \sum_{i=1}^n (Z_i - \mathbb{E}[Z_i]) \geq t \right) \leq \exp \left( \frac{-2nt^2}{(b-a)^2} \right),
+\]
+\[
+\mathbb{P} \left( \frac{1}{n} \sum_{i=1}^n (Z_i - \mathbb{E}[Z_i]) \leq -t \right) \leq \exp \left( \frac{-2nt^2}{(b-a)^2} \right).
+\]
+
+\begin{proof}
+Define \( X_i = Z_i - \mathbb{E}[Z_i] \), so \( \mathbb{E}[X_i] = 0 \) and \( X_i \in [a - \mathbb{E}[Z_i], b - \mathbb{E}[Z_i]] \) with range \( b - a \). By part (a):
+\[
+\mathbb{E}[e^{sX_i}] \leq \exp\left( \frac{s^2 (b - a)^2}{8} \right) \quad \forall s > 0.
+\]
+Let \( S_n = \sum_{i=1}^n X_i \). By independence:
+\[
+\mathbb{E}[e^{sS_n}] \leq \exp\left( \frac{n s^2 (b - a)^2}{8} \right).
+\]
+For the upper tail (\( S_n \geq nt \)):
+\[
+\mathbb{P}(S_n \geq nt) \leq \inf_{s>0} e^{-snt} \mathbb{E}[e^{sS_n}] \leq \inf_{s>0} \exp\left( -snt + \frac{n s^2 (b - a)^2}{8} \right).
+\]
+Minimizing the exponent: set derivative w.r.t \( s \) to zero:
+\[
+-nt + \frac{ns(b-a)^2}{4} = 0 \implies s = \frac{4t}{(b-a)^2}.
+\]
+Substituting gives:
+\[
+\mathbb{P}(S_n \geq nt) \leq \exp\left( -\frac{2nt^2}{(b-a)^2} \right).
+\]
+For the lower tail, apply the same argument to \( -S_n \), yielding identical bound.
+\end{proof}
+
+\noindent\rule{\textwidth}{0.2pt}
+\noindent\rule{\textwidth}{0.2pt}
+\subsection{Sub-Gaussian[15-points]}
+\begin{enumerate}
+    \item[(1)] Upper tail: \( \Pr(X > \mu + t) \leq e^{-t^2/(2\sigma^2)} \) for \( t > 0 \)
+    \item[(2)] Lower tail: \( \Pr(X < \mu - t) \leq e^{-t^2/(2\sigma^2)} \) for \( t > 0 \)
+    \item[(3)] Two-sided tail: \( \Pr(|X - \mu| \geq t) \leq 2e^{-t^2/(2\sigma^2)} \) for \( t > 0 \)
+\end{enumerate}
+\subsubsection{a-1)[2-points]}
+\begin{proof}
+For any \( \lambda > 0 \), by Markov's inequality:
+\[
+\Pr(X > \mu + t) = \Pr(e^{\lambda(X - \mu)} > e^{\lambda t}) \leq \frac{\mathbb{E}[e^{\lambda(X - \mu)}]}{e^{\lambda t}} \leq e^{\lambda^2\sigma^2/2 - \lambda t}.
+\]
+Minimize the exponent \( \lambda^2\sigma^2/2 - \lambda t \) over \( \lambda > 0 \). Set derivative to zero:
+\[
+\frac{d}{d\lambda}\left(\frac{\lambda^2\sigma^2}{2} - \lambda t\right) = \lambda\sigma^2 - t = 0 \implies \lambda = \frac{t}{\sigma^2}.
+\]
+Substituting yields:
+\[
+\Pr(X > \mu + t) \leq \exp\left(\frac{(t/\sigma^2)^2\sigma^2}{2} - \frac{t}{\sigma^2} \cdot t\right) = \exp\left(-\frac{t^2}{2\sigma^2}\right).
+\]
+\end{proof}
+
+\subsubsection{a-2)[2-points]}
+\begin{proof}
+For any \( \lambda < 0 \), set \( \eta = -\lambda > 0 \). Then:
+\[
+\Pr(X < \mu - t) = \Pr(e^{\lambda(X - \mu)} > e^{\lambda (-t)}) = \Pr(e^{-\eta(X - \mu)} > e^{\eta t}) \leq \frac{\mathbb{E}[e^{-\eta(X - \mu)}]}{e^{\eta t}} \leq e^{\eta^2\sigma^2/2 - \eta t}.
+\]
+Minimize \( \eta^2\sigma^2/2 - \eta t \) over \( \eta > 0 \). The minimum occurs at \( \eta = t/\sigma^2 \):
+\[
+\Pr(X < \mu - t) \leq \exp\left(\frac{(t/\sigma^2)^2\sigma^2}{2} - \frac{t}{\sigma^2} \cdot t\right) = \exp\left(-\frac{t^2}{2\sigma^2}\right).
+\]
+\end{proof}
+
+\subsubsection{a-3)[2-points]}
+\begin{proof}
+\[
+\Pr(|X - \mu| \geq t) = \Pr(X \geq \mu + t) + \Pr(X \leq \mu - t) \leq e^{-t^2/(2\sigma^2)} + e^{-t^2/(2\sigma^2)} = 2e^{-t^2/(2\sigma^2)}.
+\]
+\end{proof}
+
+\subsubsection{b)[3-points]}
+Suppose \(\{X_i\}_{i=1}^n\) are independent random variables with \(\mathbb{E}[X_i] = \mu_i\) and each \(X_i\) is sub-Gaussian with parameter \(\sigma_i\). Then for all \(t \geq 0\),
+\[
+\Pr\left[\left|\sum_{i=1}^n (X_i - \mu_i)\right| \geq t\right] \leq 2 \exp\left(-\frac{t^2}{2 \sum_{i=1}^n \sigma_i^2}\right).
+\]
+
+\begin{proof}
+Define \(Y_i = X_i - \mu_i\) for each \(i\). Then \(\mathbb{E}[Y_i] = 0\) and \(Y_i\) is sub-Gaussian with parameter \(\sigma_i\), satisfying:
+\[
+\mathbb{E}[e^{\lambda Y_i}] \leq e^{\lambda^2 \sigma_i^2 / 2} \quad \forall \lambda \in \mathbb{R}.
+\]
+Let \(S_n = \sum_{i=1}^n Y_i\). By independence, the moment generating function of \(S_n\) is:
+\[
+\mathbb{E}[e^{\lambda S_n}] = \prod_{i=1}^n \mathbb{E}[e^{\lambda Y_i}] \leq \prod_{i=1}^n e^{\lambda^2 \sigma_i^2 / 2} = \exp\left( \frac{\lambda^2}{2} \sum_{i=1}^n \sigma_i^2 \right).
+\]
+Thus \(S_n\) is sub-Gaussian with parameter \(\sigma = \sqrt{\sum_{i=1}^n \sigma_i^2}\). Applying the two-sided tail bound for sub-Gaussian variables:
+\[
+\Pr\left[ |S_n| \geq t \right] \leq 2 \exp\left( -\frac{t^2}{2 \sigma^2} \right) = 2 \exp\left( -\frac{t^2}{2 \sum_{i=1}^n \sigma_i^2} \right).
+\]
+\end{proof}
+
+\subsubsection{c)[4-points]}
+Let \(X_1, \ldots, X_n\) be i.i.d. sub-Gaussian random variables with variance proxy \(\sigma^2\) and \(\mathbb{E}[X] = \mu\). Then:
+
+\begin{enumerate}
+    \item For any \(\epsilon \geq 0\),
+    \[
+    \mathbb{P} \left( \frac{1}{n} \sum_{i=1}^n X_i - \mu \geq \epsilon \right) \leq \exp\left(-\frac{n\epsilon^2}{2\sigma^2}\right).
+    \]
+    
+    \item For any \(\delta \in [0, 1]\),
+    \[
+    \mathbb{P} \left( \frac{1}{n} \sum_{i=1}^n X_i - \mu < \sqrt{\frac{2\sigma^2 \log(1/\delta)}{n}} \right) \geq 1 - \delta.
+    \]
+\end{enumerate}
+
+\begin{proof}
+Define \(Y_i = X_i - \mu\) for each \(i\), so \(\mathbb{E}[Y_i] = 0\) and \(Y_i\) is sub-Gaussian with parameter \(\sigma\). Let \(\bar{Y}_n = \frac{1}{n} \sum_{i=1}^n Y_i\). The sum \(S_n = \sum_{i=1}^n Y_i\) is sub-Gaussian with parameter \(\sigma\sqrt{n}\) as shown in part (b). Thus \(\bar{Y}_n = S_n / n\) is sub-Gaussian with parameter \(\sigma/\sqrt{n}\):
+\[
+\mathbb{E}[e^{\lambda \bar{Y}_n}] = \mathbb{E}[e^{\lambda S_n / n}] \leq \exp\left( \frac{\lambda^2}{2} \cdot \frac{\sigma^2}{n} \right) = \exp\left( \frac{\lambda^2 \sigma^2}{2n} \right).
+\]
+
+\begin{enumerate}
+    \item Apply the upper tail bound for sub-Gaussian variables:
+    \[
+    \mathbb{P} \left( \bar{Y}_n \geq \epsilon \right) \leq \inf_{\lambda > 0} e^{-\lambda \epsilon} \exp\left( \frac{\lambda^2 \sigma^2}{2n} \right) = \inf_{\lambda > 0} \exp\left( -\lambda \epsilon + \frac{\lambda^2 \sigma^2}{2n} \right).
+    \]
+    Minimize the exponent: set derivative w.r.t \(\lambda\) to zero:
+    \[
+    -\epsilon + \frac{\lambda \sigma^2}{n} = 0 \implies \lambda = \frac{n\epsilon}{\sigma^2}.
+    \]
+    Substituting gives:
+    \[
+    \mathbb{P} \left( \bar{Y}_n \geq \epsilon \right) \leq \exp\left( -\frac{n\epsilon}{\sigma^2} \cdot \epsilon + \frac{(n\epsilon/\sigma^2)^2 \sigma^2}{2n} \right) = \exp\left( -\frac{n\epsilon^2}{2\sigma^2} \right).
+    \]
+    
+    \item Set \(\epsilon = \sqrt{\frac{2\sigma^2 \log(1/\delta)}{n}}\). Then:
+    \[
+    \mathbb{P} \left( \bar{Y}_n \geq \epsilon \right) \leq \exp\left( -\frac{n}{2\sigma^2} \cdot \frac{2\sigma^2 \log(1/\delta)}{n} \right) = \exp\left( -\log(1/\delta) \right) = \delta.
+    \]
+    Thus:
+    \[
+    \mathbb{P} \left( \bar{Y}_n < \epsilon \right) = 1 - \mathbb{P} \left( \bar{Y}_n \geq \epsilon \right) \geq 1 - \delta.
+    \]
+    Substituting the expression for \(\epsilon\) gives the result.
+\end{enumerate}
+\end{proof}
+
+
+\noindent\rule{\textwidth}{0.2pt}
+}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+{\fontfamily{lmss}\selectfont {\color{DarkBlue}
+\noindent\rule{\textwidth}{1.5pt}
+\section{UCB[75-points]}
+\noindent\rule{\textwidth}{1.5pt}
+\noindent\rule{\textwidth}{0.2pt}
+\subsection{The Upper Confidence Bound Algorithm[40-points]}
+
+\subsubsection{a)[2-points]}
+For any policy $\pi$ and stochastic bandit environment $\nu$ with action space $\mathcal{A}$ (finite or countable) and horizon $n \in \mathbb{N}$, the regret $R_n$ satisfies
+\[
+R_n = \sum_{a \in \mathcal{A}} \Delta_a \mathbb{E}[T_a(n)]
+\]
+where $\Delta_a = R_{\max} - R_a$ is the regret for arm $a$, $R_{\max} = \max_{a' \in \mathcal{A}} R_{a'}$ is the maximum expected reward, and $T_a(n)$ is the number of times arm $a$ is pulled up to time $n$.
+
+\begin{proof}
+The regret is defined as:
+\[
+R_n = n R_{\max} - \mathbb{E}\left[\sum_{t=1}^n r_{I_t}\right]
+\]
+where $I_t$ is the arm pulled at time $t$ and $r_{I_t}$ is the reward obtained.
+
+Rewriting the total reward sum by grouping pulls per arm:
+\[
+\sum_{t=1}^n r_{I_t} = \sum_{a \in \mathcal{A}} \sum_{k=1}^{T_a(n)} r_a(k)
+\]
+where $r_a(k)$ is the reward from the $k$-th pull of arm $a$. Taking expectations:
+\[
+\mathbb{E}\left[\sum_{t=1}^n r_{I_t}\right] = \mathbb{E}\left[\sum_{a \in \mathcal{A}} \sum_{k=1}^{T_a(n)} r_a(k)\right]
+\]
+By the law of total expectation and the i.i.d. property of rewards for each arm:
+\[
+\mathbb{E}\left[\sum_{k=1}^{T_a(n)} r_a(k)\right] = \mathbb{E}\left[\mathbb{E}\left[\sum_{k=1}^{T_a(n)} r_a(k) \mid T_a(n)\right]\right] = \mathbb{E}[T_a(n) R_a]
+\]
+Thus:
+\[
+\mathbb{E}\left[\sum_{t=1}^n r_{I_t}\right] = \sum_{a \in \mathcal{A}} \mathbb{E}[T_a(n) R_a] = \sum_{a \in \mathcal{A}} R_a \mathbb{E}[T_a(n)]
+\]
+
+Substituting into the regret expression:
+\[
+R_n = n R_{\max} - \sum_{a \in \mathcal{A}} R_a \mathbb{E}[T_a(n)]
+\]
+Since $\sum_{a \in \mathcal{A}} T_a(n) = n$ almost surely, we have:
+\[
+\sum_{a \in \mathcal{A}} \mathbb{E}[T_a(n)] = n
+\]
+Rewriting:
+\[
+R_n = R_{\max} \sum_{a \in \mathcal{A}} \mathbb{E}[T_a(n)] - \sum_{a \in \mathcal{A}} R_a \mathbb{E}[T_a(n)] = \sum_{a \in \mathcal{A}} (R_{\max} - R_a) \mathbb{E}[T_a(n)] = \sum_{a \in \mathcal{A}} \Delta_a \mathbb{E}[T_a(n)]
+\]
+\end{proof}
+
+\subsubsection{b)[4-points]}
+
+With fixed $\delta = C$, after initialization (each arm pulled once):
+\begin{enumerate}
+    \item Arm 1's UCB index becomes \textbf{fixed} at:
+    \[
+    \mathrm{UCB}_1 = \hat{\mu}_1(1) + \sqrt{2\log(1/\delta)}
+    \]
+    
+    \item In the bad event:
+    \[
+    \mathrm{UCB}_1 < \mu_1
+    \]
+    
+    \item At least one suboptimal arm $j$ satisfies:
+    \[
+    \mathrm{UCB}_j(1) > \mu_1
+    \]
+    
+    \item For any future $T_j \geq 1$:
+    \[
+    \mathrm{UCB}_j(T_j) \geq \mu_j > \mathrm{UCB}_1
+    \]
+\end{enumerate}
+Thus, arm 1 is never selected again.
+
+Assume the bad event occurs:
+\begin{align}
+    \hat{\mu}_1(1) &< \mu_1 - \sqrt{2\log(1/\delta)} \label{eq:under} \\
+    \exists j \neq 1 &: \hat{\mu}_j(1) + \sqrt{2\log(1/\delta)} > \mu_1 \label{eq:over}
+\end{align}
+
+Let $d = \mu_1 - \mathrm{UCB}_1 > 0$. For any suboptimal arm $j$:
+\[
+\mu_j \geq \min_{k \neq 1} \mu_k > \mu_1 - d = \mathrm{UCB}_1
+\]
+
+After $m$ pulls of arm $j$:
+\[
+\mathrm{UCB}_j(m) = \underbrace{\hat{\mu}_j(m)}_{\to \mu_j} + \underbrace{\sqrt{\frac{c^2}{m}}}_{\geq 0} > \mathrm{UCB}_1
+\]
+for sufficiently large $m$ (and in practice, for all $m \geq 1$).
+
+\textbf{Algorithm Never Returns to Arm 1}
+
+At any time $t > K$:
+\begin{itemize}
+    \item $\mathrm{UCB}_1$ remains fixed at $L < \mu_1$
+    \item All arms $j$ pulled at least once have $\mathrm{UCB}_j \geq \mu_j > L$
+    \item The algorithm always observes:
+    \[
+    \max_{j \neq 1} \mathrm{UCB}_j(t) > \mathrm{UCB}_1
+    \]
+    \item Thus, it always selects a suboptimal arm
+\end{itemize}
+
+\textbf{Linear Regret Consequence}
+
+The regret grows linearly:
+\[
+R_n \geq (n - K) \Delta_{\min}, \quad \Delta_{\min} = \min_{j \neq 1} (\mu_1 - \mu_j) > 0
+\]
+with probability $\geq \delta^{K}$ (since all arms must be misestimated).
+
+\textbf{Solution: Time-Varying $\delta$}
+
+Set $\delta_t = t^{-\alpha}$ ($\alpha > 1$). The UCB index becomes:
+\[
+\mathrm{UCB}_i(t) = \hat{\mu}_i(t) + \sqrt{\frac{2\alpha \log t}{T_i(t)}}
+\]
+This ensures:
+\begin{itemize}
+    \item Confidence terms grow with $\log t$
+    \item Optimal arm gets pulled infinitely often
+    \item Sublinear regret: $R_n = \mathcal{O}(\log n)$
+\end{itemize}
+
+\subsubsection{c)[4-points]}
+If event $G_i$ occurs, then arm $i$ is played at most $u_i$ times: $T_i(n) \leq u_i$.
+
+\begin{proof}
+Assume $G_i$ occurs. Suppose for contradiction that arm $i$ is played more than $u_i$ times. Let $\tau$ be the time of the $(u_i + 1)$-th pull of arm $i$. At time $\tau-1$, $T_i(\tau-1) = u_i$. By $G_i$:
+\[
+\mathrm{UCB}_i(\tau-1, \delta) = \hat{\mu}_{i,u_i} + \sqrt{\frac{2\log(1/\delta)}{u_i}} < \mu_1.
+\]
+Also by $G_i$:
+\[
+\mu_1 < \min_{t \in [n]} \mathrm{UCB}_1(t, \delta) \leq \mathrm{UCB}_1(\tau-1, \delta).
+\]
+Thus:
+\[
+\mathrm{UCB}_i(\tau-1, \delta) < \mu_1 < \mathrm{UCB}_1(\tau-1, \delta).
+\]
+This contradicts arm $i$ being pulled at time $\tau$. Hence, $T_i(n) \leq u_i$.
+\end{proof}
+
+\subsubsection{d)[4-points]}
+\[
+\mathbb{E}[T_i(n)] \leq u_i + \mathbb{P}(G_i^c) \cdot n
+\]
+
+\begin{proof}
+Decompose the expectation:
+\[
+\mathbb{E}[T_i(n)] = \mathbb{E}[T_i(n) \mid G_i] \mathbb{P}(G_i) + \mathbb{E}[T_i(n) \mid G_i^c] \mathbb{P}(G_i^c).
+\]
+By (c), $\mathbb{E}[T_i(n) \mid G_i] \leq u_i$. Trivially, $\mathbb{E}[T_i(n) \mid G_i^c] \leq n$. Thus:
+\[
+\mathbb{E}[T_i(n)] \leq u_i \mathbb{P}(G_i) + n \mathbb{P}(G_i^c) \leq u_i + n \mathbb{P}(G_i^c).
+\]
+\end{proof}
+
+\subsubsection{e)[6-points]}
+Assume $u_i$ satisfies $\Delta_i - \sqrt{\frac{2\log(1/\delta)}{u_i}} \geq c \Delta_i$ for $c \in (0,1)$. Then:
+\[
+\mathbb{P}\left( \hat{\mu}_{i,u_i} + \sqrt{\frac{2\log(1/\delta)}{u_i}} \geq \mu_1 \right) \leq \exp\left(-\frac{u_i c^2 \Delta_i^2}{2}\right).
+\]
+
+\begin{proof}
+The event implies:
+\[
+\hat{\mu}_{i,u_i} - \mu_i \geq \mu_1 - \mu_i - \sqrt{\frac{2\log(1/\delta)}{u_i}} = \Delta_i - \sqrt{\frac{2\log(1/\delta)}{u_i}} \geq c \Delta_i.
+\]
+Since $\hat{\mu}_{i,u_i}$ is the average of $u_i$ independent 1-sub-Gaussian random variables:
+\[
+\mathbb{P}\left( \hat{\mu}_{i,u_i} - \mu_i \geq c \Delta_i \right) \leq \exp\left(-\frac{u_i (c \Delta_i)^2}{2}\right) = \exp\left(-\frac{u_i c^2 \Delta_i^2}{2}\right).
+\]
+\end{proof}
+
+\subsubsection{f)[4-points]}
+\[
+\mathbb{P}(G_i^c) \leq n\delta + \exp\left(-\frac{u_i c^2 \Delta_i^2}{2}\right)
+\]
+
+\begin{proof}
+By union bound:
+\[
+\mathbb{P}(G_i^c) \leq \mathbb{P}\left( \mu_1 \geq \min_{t \in [n]} \mathrm{UCB}_1(t, \delta) \right) + \mathbb{P}\left( \hat{\mu}_{i,u_i} + \sqrt{\frac{2\log(1/\delta)}{u_i}} \geq \mu_1 \right).
+\]
+The second term is bounded in (e). For the first term:
+\[
+\left\{ \mu_1 \geq \min_{t \in [n]} \mathrm{UCB}_1(t, \delta) \right\} \subseteq \bigcup_{t=1}^n \left\{ \mu_1 \geq \mathrm{UCB}_1(t, \delta) \right\}.
+\]
+Each event $\{\mu_1 \geq \mathrm{UCB}_1(t, \delta)\}$ is equivalent to:
+\[
+\hat{\mu}_{1,s} \leq \mu_1 - \sqrt{\frac{2\log(1/\delta)}{s}} \quad (s = T_1(t)),
+\]
+which has probability $\leq \delta$ by sub-Gaussian tail. Union over $s=1$ to $n$ gives:
+\[
+\mathbb{P}\left( \bigcup_{t=1}^n \{\mu_1 \geq \mathrm{UCB}_1(t, \delta)\} \right) \leq \sum_{s=1}^n \delta = n\delta.
+\]
+\end{proof}
+
+\subsubsection{g)[6-points]}
+With appropriate $u_i$ and $c \in (0,1)$:
+\[
+\mathbb{E}[T_i(n)] \leq 3 + \frac{16\log n}{\Delta_i^2}.
+\]
+
+\begin{proof}
+From (d) and (f):
+\[
+\mathbb{E}[T_i(n)] \leq u_i + n \left[ n\delta + \exp\left(-\frac{u_i c^2 \Delta_i^2}{2}\right) \right].
+\]
+Set $\delta = \frac{1}{n^2}$ and $u_i = \frac{16\log n}{\Delta_i^2}$. Then $n^2 \delta = 1$. Choose $c = \frac{1}{2}$.
+Now:
+\[
+n \exp\left(-\frac{u_i c^2 \Delta_i^2}{2}\right) = n \exp\left(-\frac{16\log n \cdot (1/4) \Delta_i^2}{2 \Delta_i^2}\right) = n \exp(-2\log n) = n^{-1}.
+\]
+Thus:
+\[
+\mathbb{E}[T_i(n)] \leq \frac{16\log n}{\Delta_i^2} + 1 + 1 = \frac{16\log n}{\Delta_i^2} + 2 \leq 3 + \frac{16\log n}{\Delta_i^2}.
+\]
+\end{proof}
+
+\subsubsection{h)[5-points]}
+If $\delta = \frac{1}{n^2}$:
+\[
+R_n \leq 3 \sum_{i=1}^k \Delta_i + \sum_{i: \Delta_i > 0} \frac{16\log n}{\Delta_i}.
+\]
+
+\begin{proof}
+By regret decomposition:
+\[
+R_n = \sum_{i=1}^k \Delta_i \mathbb{E}[T_i(n)].
+\]
+For optimal arm ($\Delta_i = 0$), contribution is 0. For suboptimal arms ($\Delta_i > 0$), apply (g):
+\[
+R_n \leq \sum_{i: \Delta_i > 0} \Delta_i \left( 3 + \frac{16\log n}{\Delta_i^2} \right) = 3 \sum_{i: \Delta_i > 0} \Delta_i + \sum_{i: \Delta_i > 0} \frac{16\log n}{\Delta_i}.
+\]
+Extending sums to all $i$ (optimal arm adds 0) gives the result.
+\end{proof}
+
+\subsubsection{i)[5-points]}
+\[
+R_n \leq 8\sqrt{nk\log n} + 3\sum_{i=1}^k \Delta_i.
+\]
+
+\begin{proof}
+Set $\Delta = \sqrt{\frac{16k\log n}{n}}$. Split arms:
+\begin{itemize}
+    \item $\Delta_i \geq \Delta$: Use (h) directly
+    \item $0 < \Delta_i < \Delta$: Trivial bound $\Delta_i \mathbb{E}[T_i(n)] \leq \Delta n$
+\end{itemize}
+Then:
+\[
+R_n = \sum_{i: \Delta_i \geq \Delta} \Delta_i \mathbb{E}[T_i(n)] + \sum_{i: 0 < \Delta_i < \Delta} \Delta_i \mathbb{E}[T_i(n)].
+\]
+First sum:
+\[
+\sum_{i: \Delta_i \geq \Delta} \Delta_i \mathbb{E}[T_i(n)] \leq \sum_{i: \Delta_i \geq \Delta} \left( 3\Delta_i + \frac{16\log n}{\Delta_i} \right) \leq 3\sum_{i=1}^k \Delta_i + \sum_{i: \Delta_i \geq \Delta} \frac{16\log n}{\Delta_i}.
+\]
+Bounding the sum:
+\[
+\sum_{i: \Delta_i \geq \Delta} \frac{16\log n}{\Delta_i} \leq k \cdot \frac{16\log n}{\Delta} = 16k\log n \cdot \sqrt{\frac{n}{16k\log n}} = 4\sqrt{nk\log n}.
+\]
+Second sum:
+\[
+\sum_{i: 0 < \Delta_i < \Delta} \Delta_i \mathbb{E}[T_i(n)] \leq \Delta \sum_{i} \mathbb{E}[T_i(n)] = \Delta \cdot n = n \cdot \sqrt{\frac{16k\log n}{n}} = 4\sqrt{nk\log n}.
+\]
+Combining:
+\[
+R_n \leq 3\sum_{i=1}^k \Delta_i + 4\sqrt{nk\log n} + 4\sqrt{nk\log n} = 3\sum_{i=1}^k \Delta_i + 8\sqrt{nk\log n}.
+\]
+\end{proof}
+
+\noindent\rule{\textwidth}{0.2pt}
+\noindent\rule{\textwidth}{0.2pt}
+
+\subsection{Power of 2 version of UCB Algorithm^*(Bonus)[35-points]}
+
+\subsection*{Regret Analysis}
+
+Define $\mu^* = \max_i \mu_i$ and $\Delta_i = \mu^* - \mu_i$. Let $\delta = \frac{1}{Kn^2}$ and $L = \lfloor \log_2(n) \rfloor$ be the number of phases. The total regret is bounded by considering two events: the good event $G$ where all confidence bounds hold, and the bad event $G^c$.
+
+\subsubsection*{Good Event Definition}
+Define the good event:
+\[
+G = \bigcap_{i=1}^K \bigcap_{\ell=0}^L \left\{ \hat{\mu}_i(t_\ell) - \mu_i \leq \sqrt{\frac{2\log(1/\delta)}{T_i(t_\ell)}} \right\}
+\]
+where $t_\ell$ is the start time of phase $\ell$. By union bound and sub-Gaussian tail:
+\[
+\mathbb{P}(G^c) \leq \sum_{i=1}^K \sum_{\ell=0}^L \delta \leq K(L+1)\delta \leq K\log_2(n) \cdot \frac{1}{Kn^2} \leq \frac{\log_2 n}{n^2} \leq \frac{1}{n}
+\]
+
+\subsubsection*{Regret under Good Event}
+Under $G$, if arm $i$ has been pulled $T_i \geq \frac{8\log(1/\delta)}{\Delta_i^2}$ times, then:
+\[
+\mathrm{UCB}_i \leq \mu_i + \sqrt{\frac{2\log(1/\delta)}{T_i}} \leq \mu_i + \frac{\Delta_i}{2} = \mu^* - \frac{\Delta_i}{2} < \mu^* \leq \mathrm{UCB}^*
+\]
+Thus, arm $i$ is not selected once $T_i \geq u_i \triangleq \frac{8\log(1/\delta)}{\Delta_i^2}$. 
+
+The total pulls of arm $i$ satisfy:
+\[
+T_i(n) \leq 1 + u_i + 2^{m_i} \quad \text{where} \quad 2^{m_i} \leq u_i
+\]
+Thus:
+\[
+T_i(n) \leq 1 + u_i + u_i = 1 + 2u_i
+\]
+The regret from suboptimal arms:
+\[
+\sum_{i:\Delta_i > 0} \Delta_i T_i(n) \leq \sum_{i:\Delta_i > 0} \Delta_i (1 + 2u_i) = \sum_{i:\Delta_i > 0} \left( \Delta_i + \frac{16\log(1/\delta)}{\Delta_i} \right)
+\]
+
+\subsubsection*{Regret under Bad Event}
+The bad event contributes at most:
+\[
+\mathbb{E}[R_n \mid G^c] \mathbb{P}(G^c) \leq n \Delta_{\max} \cdot \frac{1}{n} = \Delta_{\max}
+\]
+
+\subsubsection*{Total Expected Regret}
+Combining both cases:
+\[
+\mathbb{E}[R_n] \leq \sum_{i:\Delta_i > 0} \left( \Delta_i + \frac{16\log(1/\delta)}{\Delta_i} \right) + \Delta_{\max}
+\]
+Substituting $\delta = \frac{1}{Kn^2}$ and $\log(1/\delta) = \log(Kn^2) = \log K + 2\log n$:
+\[
+\mathbb{E}[R_n] \leq \sum_{i:\Delta_i > 0} \left( \Delta_i + \frac{16(\log K + 2\log n)}{\Delta_i} \right) + \Delta_{\max}
+\]
+
+\subsection*{Minimax Regret Bound}
+To derive a minimax bound, set $\Delta = \sqrt{\frac{16K(\log K + 2\log n)}{n}}$. Split arms:
+\begin{align*}
+\mathbb{E}[R_n] &\leq \sum_{i:\Delta_i \geq \Delta} \left( \Delta_i + \frac{16(\log K + 2\log n)}{\Delta_i} \right) + \sum_{i: 0 < \Delta_i < \Delta} \Delta_i \mathbb{E}[T_i(n)] + \Delta_{\max} \\
+&\leq \sum_{i=1}^K \Delta_i + 16(\log K + 2\log n) \cdot \frac{K}{\Delta} + 2n\Delta \\
+&= \sum_{i=1}^K \Delta_i + 4\sqrt{nK(\log K + 2\log n)} + 8\sqrt{nK(\log K + 2\log n)} \\
+&\leq \sum_{i=1}^K \Delta_i + 12\sqrt{nK(\log K + 2\log n)}
+\end{align*}
+Since $\sum_{i=1}^K \Delta_i \leq K \Delta_{\max} = O(K)$, the minimax regret is:
+\[
+\mathbb{E}[R_n] = O\left( \sqrt{nK(\log K + 2\log n)} \right)
+\]
+
+
+
+}}
+
+\newpage
+\noindent\rule{\textwidth}{1.5pt}
+\section{Online Learning[50-points]}
+\noindent\rule{\textwidth}{1.5pt}
+\noindent\rule{\textwidth}{0.2pt}
+\subsection{Randomized Weighted Majority Algorithm[35-points]}
+\subsubsection{a)[5-points]}
+For any time $t \geq 0$,
+\[
+\mathbb{E}[S_{t+1}] = \mathbb{E}[S_{t}] \cdot (1 - \epsilon \cdot \mathbb{P}(\hat{m}_t = 1))
+\]
+
+\begin{proof}
+The weight update rule is:
+\[
+w_i(t+1) = w_i(t) \cdot (1 - \epsilon \cdot m_i(t))
+\]
+where $m_i(t) = 1$ if expert $i$ is incorrect at time $t$, else $0$. The total weight is:
+\[
+S_{t+1} = \sum_{i=1}^N w_i(t) (1 - \epsilon \cdot m_i(t)) = S_t - \epsilon \sum_{i=1}^N w_i(t) m_i(t).
+\]
+Let $\eta_t = \sum_{i=1}^N \frac{w_i(t)}{S_t} m_i(t)$. Then:
+\[
+\sum_{i=1}^N w_i(t) m_i(t) = S_t \eta_t,
+\]
+and we can say:
+\[
+\hat{m}_t \sim Bern(\mathbb{P}(\hat{m}_t = 1)) \implies \mathbb{P}(\hat{m}_t = 1) = \mathbb{E}[\hat{m}_t] = \sum_{i=1}^N \frac{w_i(t)}{S_t} \cdot m_i(t) = \eta_t
+\]
+so
+\[
+S_{t+1} = S_t - \epsilon S_t \eta_t = S_t (1 - \epsilon \cdot \mathbb{P}(\hat{m}_t = 1)).
+\]
+Taking expectation gives the result:
+\[
+\mathbb{E}[S_{t+1}] = \mathbb{E}[S_{t}] \cdot (1 - \epsilon \cdot \mathbb{P}(\hat{m}_t = 1)).
+\]
+\end{proof}
+
+\subsubsection{b)[8-points]}
+After $T$ rounds,
+\[
+\mathbb{E}[S_{T}] \leq N \cdot \exp\left(-\epsilon \sum_{t=0}^{T-1} \mathbb{P}(\hat{m}_t = 1)\right).
+\]
+
+\begin{proof}
+From (a), $\mathbb{E}[S_{t+1}] = \mathbb{E}[S_{t}] (1 - \epsilon \mathbb{P}(\hat{m}_t = 1)) \leq \mathbb{E}[S_{t}] \exp(-\epsilon \mathbb{P}(\hat{m}_t = 1))$ since $1 - x \leq e^{-x}$ for $x \in [0,1]$. Iterating:
+\[
+\mathbb{E}[S_{T}] \leq \mathbb{E}[S_{0}] \exp\left(-\epsilon \sum_{t=0}^{T-1} \mathbb{P}(\hat{m}_t = 1)\right) = N \exp\left(-\epsilon \sum_{t=0}^{T-1} \mathbb{P}(\hat{m}_t = 1)\right).
+\]
+Thus the result holds.
+\end{proof}
+
+\subsubsection{c)[15-points]}
+For any expert $i$,
+\[
+\mathbb{E}[M] \leq (1 + \epsilon) M_i + \frac{\ln N}{\epsilon},
+\]
+where $M = \sum_{t=0}^{T-1} \hat{m}_t$ is the algorithm's total mistakes, and $M_i$ is expert $i$'s mistakes.
+
+\begin{proof}
+For any expert $i$:
+\[
+\mathbb{E}[w_i(T)] = (1 - \epsilon)^{\mathbb{E}[M_i]} \leq \mathbb{E}[S_T] \leq N \exp\left(-\epsilon \sum_{t=0}^{T-1} \mathbb{P}(\hat{m}_t = 1)\right).
+\]
+Taking logarithms and using $\ln(1 - \epsilon) \geq -\epsilon - \epsilon^2$ for $\epsilon \in [0,0.5]$:
+\begin{align*}
+\mathbb{E}[M_i] \ln(1 - \epsilon) &\leq \ln N - \epsilon \sum_{t=0}^{T-1} \mathbb{P}(\hat{m}_t = 1) \\
+\implies \mathbb{E}[M_i] (-\epsilon - \epsilon^2) &\leq \ln N - \epsilon \sum_{t=0}^{T-1} \mathbb{P}(\hat{m}_t = 1) \\
+\implies \sum_{t=0}^{T-1} \mathbb{P}(\hat{m}_t = 1) &\leq (1 + \epsilon) \mathbb{E}[M_i] + \frac{\ln N}{\epsilon}.
+\end{align*}
+Thus we have:
+\[
+\mathbb{E}[M] = \mathbb{E}\left[\sum_{t=0}^{T-1} \mathbb{I}(\hat{m}_t = 1)\right] = \sum_{t=0}^{T-1} \mathbb{P}(\hat{m}_t = 1) \leq (1 + \epsilon) M_i + \frac{\ln N}{\epsilon}.
+\]
+\end{proof}
+
+\subsubsection{d)[7-points]}
+\[
+\mathbb{E}[M] \leq \min_{i \in [N]} M_i + 2\sqrt{T \ln N}.
+\]
+
+\begin{proof}
+From (c):
+\[
+\mathbb{E}[M] \leq (1 + \epsilon) \min_i M_i + \frac{\ln N}{\epsilon}.
+\]
+Let $R = \mathbb{E}[M] - \min_i M_i$. Then:
+\[
+R \leq \epsilon \min_i M_i + \frac{\ln N}{\epsilon} \leq \epsilon T + \frac{\ln N}{\epsilon}.
+\]
+Choose $\epsilon = \sqrt{\ln N / T}$ (assuming $T \geq \ln N$):
+\[
+R \leq \sqrt{T \ln N} + \sqrt{T \ln N} = 2\sqrt{T \ln N}.
+\]
+Thus $\mathbb{E}[M] \leq \min_i M_i + 2\sqrt{T \ln N}$.
+
+\end{proof}
+
+The $2\sqrt{T \ln N}$ term grows sublinearly, ensuring the average regret per round $\frac{\mathbb{E}[M] - \min_i M_i}{T} \to 0$ as $T \to \infty$.
+    
+This bound Matches the information-theoretic lower bound $\Omega(\sqrt{T \log N})$ for adversarial settings, making it optimal in its dependence on $T$ and $N$.
+    
+The logarithmic dependence on $N$ allows handling large expert sets while maintaining low regret.
+
+\noindent\rule{\textwidth}{0.2pt}
+\noindent\rule{\textwidth}{0.2pt}
+\subsection{Hedge Algorithm^*(Bonus)[15-points]}
+\subsubsection{a)[6-points]}
+\subsubsection{b)[7-points]}
+\subsubsection{c)[2-points]}
+
+\noindent\rule{\textwidth}{0.4pt}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
