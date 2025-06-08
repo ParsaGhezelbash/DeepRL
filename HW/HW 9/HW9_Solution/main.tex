@@ -712,23 +712,19 @@ For any time $t \geq 0$,
 \begin{proof}
 The weight update rule is:
 \[
-w_i(t+1) = w_i(t) \cdot (1 - \epsilon \cdot m_i(t))
+w_{i_t}(t+1) = w_{i_t}(t) \cdot (1 - \epsilon \cdot m_{i_t}(t))
 \]
-where $m_i(t) = 1$ if expert $i$ is incorrect at time $t$, else $0$. The total weight is:
+where $m_{i_t}(t) = 1$ if expert $i_t$ is incorrect at time $t$, else $0$. The total weight is:
 \[
-S_{t+1} = \sum_{i=1}^N w_i(t) (1 - \epsilon \cdot m_i(t)) = S_t - \epsilon \sum_{i=1}^N w_i(t) m_i(t).
+S_{t+1} = \sum_{i=1}^N w_i(t)  - \epsilon \cdot w_{i_t} \cdot m_{i_t}(t) = S_t - \epsilon  w_{i_t}(t) m_{i_t}(t).
 \]
-Let $\eta_t = \sum_{i=1}^N \frac{w_i(t)}{S_t} m_i(t)$. Then:
+Then:
 \[
-\sum_{i=1}^N w_i(t) m_i(t) = S_t \eta_t,
-\]
-and we can say:
-\[
-\hat{m}_t \sim Bern(\mathbb{P}(\hat{m}_t = 1)) \implies \mathbb{P}(\hat{m}_t = 1) = \mathbb{E}[\hat{m}_t] = \sum_{i=1}^N \frac{w_i(t)}{S_t} \cdot m_i(t) = \eta_t
+\mathbb{P}(\hat{m}_t = 1) = \frac{w_{i_t}(t)}{S_t} \cdot m_{i_t}(t)
 \]
 so
 \[
-S_{t+1} = S_t - \epsilon S_t \eta_t = S_t (1 - \epsilon \cdot \mathbb{P}(\hat{m}_t = 1)).
+S_{t+1} = S_t (1 - \epsilon \cdot \mathbb{P}(\hat{m}_t = 1)).
 \]
 Taking expectation gives the result:
 \[
