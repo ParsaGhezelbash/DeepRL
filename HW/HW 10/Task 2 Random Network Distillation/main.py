@@ -1,7 +1,7 @@
 # main.py
 # Main training/evaluation entry point for PPO + RND agent in MiniGrid environments.
 
-import gym
+import gymnasium as gym
 import numpy as np
 import torch
 from Core.ppo_rnd_agent import Brain

@@ -1,4 +1,5 @@
-gym == 0.19.0
+gymnasium>=0.28.1
+gymnasium-minigrid
 matplotlib >= 3.3.2
 numpy >= 1.19.2
 opencv_contrib_python >= 4.4.0.44
