@@ -58,9 +58,8 @@ class Brain:
         pred = self.predictor_model(norm_obs)
         # Compute squared error (MSE) between predicted and target features
         loss = self.mse_loss(pred, target)
-        int_reward = loss.item()
         # Take mean over feature dimension (dim=1)
-        int_reward = int_reward.mean(dim=1) # Replace this with prediction error computation
+        int_reward = loss # Replace this with prediction error computation
 
         return int_reward  # → np.array
 
@@ -163,6 +162,7 @@ class Brain:
         pred = self.predictor_model(obs)
         loss = self.mse_loss(pred, target)
         mask = torch.rand(pred.shape) < self.config["predictor_proportion"]
+        mask = mask.to(self.device)
         loss = loss * mask
         final_loss = loss.mean()
         return final_loss

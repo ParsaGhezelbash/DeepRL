@@ -65,7 +65,11 @@ class Logger:
         flat_logs = []
         for item in training_logs:
             try:
-                arr = np.array(item, dtype=np.float32).flatten()
+                # Handle PyTorch tensors
+                if hasattr(item, 'cpu'):  # Check if it's a tensor
+                    arr = item.cpu().detach().numpy().astype(np.float32).flatten()
+                else:
+                    arr = np.array(item, dtype=np.float32).flatten()
                 flat_logs.extend(arr.tolist())
             except Exception as e:
                 print(f"[Logger Warning] Skipping non-numeric log entry: {item} ({e})")
