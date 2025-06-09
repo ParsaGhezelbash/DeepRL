@@ -78,6 +78,10 @@ class TargetModel(nn.Module, ABC):
         # self.conv2 = nn.Conv2d(...)
         # self.conv3 = nn.Conv2d(...)
         # self.encoded_features = nn.Linear(...)
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.encoded_features = nn.Linear(128 * 7 * 7, 512)
         
         self._init_weights()  # Call this after defining layers
 
@@ -85,12 +89,24 @@ class TargetModel(nn.Module, ABC):
         # === TODO: Initialize all layers with orthogonal weights ===
         # For most layers use gain=np.sqrt(2).
         # Call orthogonal_ on each conv and linear layer.
-        pass
+        for layer in self.modules():
+            if isinstance(layer, (nn.Conv2d, nn.Linear)):
+                nn.init.orthogonal_(layer.weight, gain=np.sqrt(2))
+                layer.bias.data.zero_()
 
     def forward(self, inputs):
         # === TODO: Implement forward pass ===
         # Normalize input, pass through conv layers, flatten, and return encoded features.
-        pass
+        x = inputs / 255.
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = self.conv3(x)
+        x = F.relu(x)
+        x = x.view(x.size(0), -1)
+        x = self.encoded_features(x)
+        return x
 
 
 # === Predictor Model ===
@@ -101,6 +117,10 @@ class PredictorModel(nn.Module, ABC):
         # It should match the target model up to encoded features,
         # and then include 1 or 2 additional linear layers.
         # End with a layer that outputs a 512-dim feature vector (same as TargetModel).
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.encoded_features = nn.Linear(128 * 7 * 7, 512)
         
         self._init_weights()  # Call this after defining layers
 
@@ -108,9 +128,21 @@ class PredictorModel(nn.Module, ABC):
         # === TODO: Initialize all layers with orthogonal weights ===
         # Use gain=np.sqrt(2) for hidden layers.
         # Use gain=np.sqrt(0.01) if you want to slow learning on final output layer (optional).
-        pass
+        for layer in self.modules():
+            if isinstance(layer, (nn.Conv2d, nn.Linear)):
+                nn.init.orthogonal_(layer.weight, gain=np.sqrt(2))
+                layer.bias.data.zero_()
 
     def forward(self, inputs):
         # === TODO: Implement forward pass ===
         # Normalize input, pass through conv layers and extra FC layers, then return final encoded vector.
-        pass
+        x = inputs / 255.
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = self.conv3(x)
+        x = F.relu(x)
+        x = x.view(x.size(0), -1)
+        x = self.encoded_features(x)
+        return x

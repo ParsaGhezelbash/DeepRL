@@ -54,9 +54,13 @@ class Brain:
 
         # === TODO: Intrinsic Reward ===
         # Use predictor_model and target_model to extract features
+        target = self.target_model(norm_obs)
+        pred = self.predictor_model(norm_obs)
         # Compute squared error (MSE) between predicted and target features
+        loss = self.mse_loss(pred, target)
+        int_reward = loss.item()
         # Take mean over feature dimension (dim=1)
-        int_reward = None  # Replace this with prediction error computation
+        int_reward = int_reward.mean(dim=1) # Replace this with prediction error computation
 
         return int_reward  # → np.array
 
@@ -89,7 +93,7 @@ class Brain:
 
         return np.array(advantages)
 
-    @mean_of_list
+    # @mean_of_list
     def train(self, states, actions, int_rewards, ext_rewards, dones,
               int_values, ext_values, log_probs, next_int_values,
               next_ext_values, total_next_obs, hidden_states):
@@ -155,11 +159,12 @@ class Brain:
         # Use predictor_model and target_model on obs to compute prediction error
         # Compute squared error, apply dropout mask using config["predictor_proportion"]
         # Reduce the loss to a scalar value
-        target = None
-        pred = None
-        loss = None
-        mask = None
-        final_loss = None
+        target = self.target_model(obs)
+        pred = self.predictor_model(obs)
+        loss = self.mse_loss(pred, target)
+        mask = torch.rand(pred.shape) < self.config["predictor_proportion"]
+        loss = loss * mask
+        final_loss = loss.mean()
         return final_loss
 
     def set_from_checkpoint(self, checkpoint):
