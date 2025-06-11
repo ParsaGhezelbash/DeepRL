@@ -13,7 +13,6 @@
 ---
 
 ## Phase I: Mathematical & Programming Foundations
-*Duration: 4-6 weeks*
 
 ### Prerequisites
 Before diving into RL, ensure solid understanding of:
@@ -39,7 +38,7 @@ Before diving into RL, ensure solid understanding of:
 ## Phase II: Classical Reinforcement Learning
 
 ### Core Textbook
-📖 **Primary Resource**: *Reinforcement Learning: An Introduction (2nd Edition)* by Sutton & Barto
+**Primary Resource**: *Reinforcement Learning: An Introduction (2nd Edition)* by Sutton & Barto
 - Available free online at: http://incompleteideas.net/book/the-book-2nd.html
 - This is the **foundational bible** of RL - read chapters 1-8 thoroughly
 
