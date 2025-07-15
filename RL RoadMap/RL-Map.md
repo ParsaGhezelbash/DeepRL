@@ -178,7 +178,7 @@ Before starting deep RL, ensure understanding of:
 **Key Papers:**
 - *World Models* (2018) - Ha & Schmidhuber
 - *Dream to Control: Learning Behaviors by Latent Imagination* (2019)
-- *MuZero (2019)**: Model-based planning without model dynamics
+- **MuZero (2019)**: Model-based planning without model dynamics
 
 ### **C. Hierarchical Reinforcement Learning**
 - **Options Framework**: Temporal abstractions
