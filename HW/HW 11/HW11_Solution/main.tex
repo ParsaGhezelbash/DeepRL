@@ -1,0 +1,287 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{amsmath, amsfonts, amssymb, mathtools}
+\usepackage{fancyhdr, setspace, parskip}
+\usepackage{graphicx, caption, subfig, array, multirow}
+\usepackage{hyperref, enumitem, cancel}
+\usepackage[T1]{fontenc}
+\usepackage{tgtermes}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tocloft}
+\usepackage{titlesec}
+\usepackage{lipsum}  
+
+\definecolor{DarkBlue}{RGB}{10, 0, 80}
+
+% Hyperlink setup
+\hypersetup{
+	colorlinks=true,
+	linkcolor=DarkBlue,
+	filecolor=BrickRed,      
+	urlcolor=RoyalBlue,
+}
+
+
+% Header and footer customization
+\fancyhead{}
+\fancyhead[L]{
+	{\fontfamily{lmss}{\color{DarkBlue}
+			\textbf{\leftmark}
+	}}
+}
+\fancyhead[R]{
+	{\fontfamily{ppl}\selectfont {\color{DarkBlue}
+			{Deep RL Course [Spring 2025]}
+	}}
+}
+
+\fancyfoot{}
+\fancyfoot[C]{
+	{\fontfamily{lmss}{\color{BrickRed}
+			\textbf{\thepage}
+	}}
+}
+
+\renewcommand{\sectionmark}[1]{ \markboth{\thesection\quad #1}{} }
+
+\renewcommand{\headrule}{{\color{BrickRed}\hrule width\headwidth height 0.5pt}}
+\renewcommand{\footrulewidth}{0pt}
+
+
+% Table of Contents customizations
+\renewcommand{\cftsecafterpnum}{\vskip6pt}
+\renewcommand{\cftsubsecafterpnum}{\vskip3pt}
+\renewcommand{\cftsubsubsecafterpnum}{\vskip3pt}
+\renewcommand{\cftsecfont}{\sffamily\large}
+\renewcommand{\cftsubsecfont}{\sffamily}
+\renewcommand{\cftsubsubsecfont}{\sffamily}
+% \renewcommand{\cftsecdotsep}{1}
+\renewcommand{\cftsubsecdotsep}{1}
+\renewcommand{\cftsubsubsecdotsep}{1}
+
+
+% Section title styles
+\titleformat*{\section}{\LARGE\bfseries\color{DarkBlue}}
+\titleformat*{\subsection}{\Large\bfseries\color{DarkBlue}}
+\titleformat*{\subsubsection}{\large\bfseries\color{DarkBlue}}
+
+\definecolor{light-gray}{gray}{0.95}
+\newcommand{\code}[1]{\colorbox{light-gray}{\texttt{#1}}}
+
+% Start of the document
+\pagestyle{fancy}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+	
+	\pagenumbering{gobble}
+	\thispagestyle{plain}
+	
+	\begin{center}
+		
+		\vspace*{-1.5cm}
+		\begin{figure}[!h]
+			\centering
+			\includegraphics[width=0.7\linewidth]{figs/cover-std.png}
+		\end{figure}
+		
+		{
+			\fontfamily{ppl}
+			
+			{\color{DarkBlue} {\fontsize{30}{50} \textbf{
+						Deep Reinforcement Learning
+			}}}
+			
+			{\color{DarkBlue} {\Large
+					Professor Mohammad Hossein Rohban
+			}}
+		}
+		
+		
+		\vspace{20pt}
+		
+		{
+			\fontfamily{lmss}
+			
+			
+			{\color{RedOrange}
+				{\Large
+					Solution for Homework 11:
+				}\\
+			}
+			{\color{BrickRed}
+				\rule{12cm}{0.5pt}
+				
+				{\Huge
+					Imitation Learning and Inverse RL
+				}
+				\rule{12cm}{0.5pt}
+			}
+			
+			\vspace{10pt}
+			
+			{\color{RoyalPurple} { \small By:} } \\
+			\vspace{10pt}
+			
+			{\color{Blue} { \LARGE Parsa Ghezelbash } } \\
+			\vspace{5pt}
+			{\color{RoyalBlue} { \Large 401110437 } }
+			
+			
+			\vspace*{\fill}
+			\begin{center}
+				\begin{tabular}{ccc}
+					\includegraphics[width=0.14\linewidth]{figs/sharif-logo.png} & \includegraphics[width=0.14\linewidth]{figs/riml-logo.png} & \includegraphics[width=0.14\linewidth]{figs/dlr-logo.png} \\
+				\end{tabular}
+			\end{center}
+			
+			
+			\vspace*{-.25cm}
+			
+			{\color{YellowOrange} {
+					\rule{10cm}{0.5pt} \\
+					\vspace{2pt}
+					\large Spring 2025}
+		}}
+		\vspace*{-1cm}
+		
+	\end{center}
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	\newpage
+	\pagenumbering{gobble}
+	\thispagestyle{plain}
+	{\fontfamily{lmss}\selectfont {\color{BrickRed} \textbf{\tableofcontents} }}
+	
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	\newpage
+	\pagenumbering{arabic}
+	
+	{\fontfamily{lmss}\selectfont {\color{DarkBlue}
+
+\section{Distribution Shift and Performance Bounds}
+
+\subsection{Task 1: Distribution Shift Bound}
+Show that the total variation distance between state distributions induced by the learned policy and the expert satisfies:
+\[
+\sum_{s_t} \left| p_{\pi_\theta}(s_t) - p_{\pi^*}(s_t) \right| \le 2T\varepsilon.
+\]
+
+
+Given the imitation error bound:
+\[
+\frac{1}{T} \sum_{t=1}^{T} \mathbb{E}_{s_t \sim p_{\pi^*}(s_t)}[\pi_\theta(a_t \neq \pi^*(s_t) \mid s_t)] \leq \varepsilon
+\]
+Define the per-step error: $e_t = \mathbb{E}_{s_t \sim p_{\pi^*}(s_t)}[\pi_\theta(a_t \neq \pi^*(s_t) \mid s_t)]$ so $\sum_{t=1}^T e_t \leq T\varepsilon$. 
+
+The state distribution shift at time $t$ can be bounded by considering the probability of disagreement events. Let $D_t$ be the event that $\pi_\theta$ and $\pi^*$ disagree on at least one action before time $t$. Using the union bound:
+\[
+P(D_t) \leq \sum_{k=1}^{t-1} P(\text{disagree at } k) \leq \sum_{k=1}^{t-1} e_k
+\]
+The total variation distance is bounded by the probability of divergence:
+\[
+\sum_{s_t} |p_{\pi_\theta}(s_t) - p_{\pi^*}(s_t)| \leq 2P(\text{trajectories diverge by } t) \leq 2P(D_t)
+\]
+Thus:
+\[
+\sum_{s_t} |p_{\pi_\theta}(s_t) - p_{\pi^*}(s_t)| \leq 2 \sum_{k=1}^{t-1} e_k \leq 2 \sum_{k=1}^{T} e_k \leq 2T\varepsilon
+\]
+
+\subsection{Task 2: Return Gap for Terminal Rewards}
+Assume that the reward is only received at the final step (i.e., \( r(s_t) = 0 \) for all \( t < T \)). Show that:
+\[
+J(\pi^*) - J(\pi_\theta) = \mathcal{O}(T \varepsilon).
+\]
+
+
+Assume $r(s_t) = 0$ for $t < T$ and $r(s_T) \in [-R_{\max}, R_{\max}]$. The returns are:  
+\[
+J(\pi) = \mathbb{E}_{s_T \sim p_\pi(s_T)} \left[ r(s_T) \right].
+\]
+The performance gap is:  
+\[
+J(\pi^*) - J(\pi_\theta) = \mathbb{E}_{p_{\pi^*}(s_T)} \left[ r(s_T) \right] - \mathbb{E}_{p_{\pi_\theta}(s_T)} \left[ r(s_T) \right].
+\]
+Bounding this difference:  
+\[
+\left| J(\pi^*) - J(\pi_\theta) \right| \leq \sum_{s_T} \left| r(s_T) \right| \cdot \left| p_{\pi^*}(s_T) - p_{\pi_\theta}(s_T) \right| \leq R_{\max} \sum_{s_T} \left| p_{\pi^*}(s_T) - p_{\pi_\theta}(s_T) \right|.
+\]
+From Task 1 (at $t = T$):  
+\[
+\sum_{s_T} \left| p_{\pi^*}(s_T) - p_{\pi_\theta}(s_T) \right| \leq 2T\varepsilon.
+\]
+Thus:  
+\[
+\left| J(\pi^*) - J(\pi_\theta) \right| \leq 2 R_{\max} T \varepsilon = \mathcal{O}(T \varepsilon).
+\]
+
+\subsection{Task 3: Return Gap for General Rewards}
+For a general reward function (i.e., \( r(s_t) \ne 0 \) for arbitrary \( t \)), show that:
+\[
+J(\pi^*) - J(\pi_\theta) = \mathcal{O}(T^2 \varepsilon).
+\]
+			
+
+For general rewards $r(s_t) \in [-R_{\max}, R_{\max}]$, the return is:  
+\[
+J(\pi) = \sum_{t=1}^{T} \mathbb{E}_{s_t \sim p_\pi(s_t)} \left[ r(s_t) \right].
+\]
+The performance gap decomposes as:  
+\[
+J(\pi^*) - J(\pi_\theta) = \sum_{t=1}^{T} \left( \mathbb{E}_{p_{\pi^*}(s_t)} \left[ r(s_t) \right] - \mathbb{E}_{p_{\pi_\theta}(s_t)} \left[ r(s_t) \right] \right).
+\]
+Each term satisfies:  
+\[
+\left| \mathbb{E}_{p_{\pi^*}(s_t)} \left[ r(s_t) \right] - \mathbb{E}_{p_{\pi_\theta}(s_t)} \left[ r(s_t) \right] \right| \leq R_{\max} \sum_{s_t} \left| p_{\pi^*}(s_t) - p_{\pi_\theta}(s_t) \right|.
+\]
+From Task 1, $\sum_{s_t} \left| p_{\pi^*}(s_t) - p_{\pi_\theta}(s_t) \right| \leq 2T\varepsilon$ for all $t$. Thus:  
+\[
+\left| J(\pi^*) - J(\pi_\theta) \right| \leq \sum_{t=1}^{T} R_{\max} \cdot 2T\varepsilon = 2 R_{\max} T^2 \varepsilon = \mathcal{O}(T^2 \varepsilon).
+\]
+			
+	}}
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	% \newpage
+	
+	% {\fontfamily{lmss}\selectfont {\color{DarkBlue}
+			
+	% 		\section{Part 2 [30-points]}
+			
+	% 		\subsection{Section 1 [20-points]}
+			
+	% 		\subsubsection{SubSection 1 [10-points]}
+			
+	% 		\subsubsection{SubSection 2 [10-points]}
+			
+	% 		\subsection{Section 2 [10-points]}
+			
+	% 		\subsubsection{SubSection 1 [10-points]}
+			
+	% }}
+	
+	
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	\newpage
+	
+	{\fontfamily{lmss}\selectfont {\color{DarkBlue}
+			
+			\begin{thebibliography}{9}
+				
+				\bibitem{Freepik}
+				\href{https://www.freepik.com/free-vector/cute-artificial-intelligence-robot-isometric-icon_16717130.htm}{Cover image designed by freepik}
+				
+			\end{thebibliography}
+			
+	}}
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+\end{document}
