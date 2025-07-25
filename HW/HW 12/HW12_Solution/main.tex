@@ -1,0 +1,312 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{amsmath, amsfonts, amssymb, mathtools}
+\usepackage{fancyhdr, setspace, parskip}
+\usepackage{graphicx, caption, subfig, array, multirow}
+\usepackage{hyperref, enumitem, cancel}
+\usepackage[T1]{fontenc}
+\usepackage{tgtermes}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tocloft}
+\usepackage{titlesec}
+\usepackage{lipsum}  
+
+\definecolor{DarkBlue}{RGB}{10, 0, 80}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=DarkBlue,
+    filecolor=BrickRed,      
+    urlcolor=RoyalBlue,
+}
+
+
+% Header and footer customization
+\fancyhead{}
+\fancyhead[L]{
+{\fontfamily{lmss}{\color{DarkBlue}
+\textbf{\leftmark}
+}}
+}
+\fancyhead[R]{
+{\fontfamily{ppl}\selectfont {\color{DarkBlue}
+{Deep RL Course [Spring 2025]}
+}}
+}
+
+\fancyfoot{}
+\fancyfoot[C]{
+{\fontfamily{lmss}{\color{BrickRed}
+\textbf{\thepage}
+}}
+}
+
+\renewcommand{\sectionmark}[1]{ \markboth{\thesection\quad #1}{} }
+
+\renewcommand{\headrule}{{\color{BrickRed}\hrule width\headwidth height 0.5pt}}
+\renewcommand{\footrulewidth}{0pt}
+
+
+% Table of Contents customizations
+\renewcommand{\cftsecafterpnum}{\vskip6pt}
+\renewcommand{\cftsubsecafterpnum}{\vskip3pt}
+\renewcommand{\cftsubsubsecafterpnum}{\vskip3pt}
+\renewcommand{\cftsecfont}{\sffamily\large}
+\renewcommand{\cftsubsecfont}{\sffamily}
+\renewcommand{\cftsubsubsecfont}{\sffamily}
+% \renewcommand{\cftsecdotsep}{1}
+\renewcommand{\cftsubsecdotsep}{1}
+\renewcommand{\cftsubsubsecdotsep}{1}
+
+
+% Section title styles
+\titleformat*{\section}{\LARGE\bfseries\color{DarkBlue}}
+\titleformat*{\subsection}{\Large\bfseries\color{DarkBlue}}
+\titleformat*{\subsubsection}{\large\bfseries\color{DarkBlue}}
+
+\definecolor{light-gray}{gray}{0.95}
+\newcommand{\code}[1]{\colorbox{light-gray}{\texttt{#1}}}
+
+% Start of the document
+\pagestyle{fancy}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\pagenumbering{gobble}
+\thispagestyle{plain}
+
+\begin{center}
+
+\vspace*{-1.5cm}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figs/cover-std.png}
+\end{figure}
+
+{
+\fontfamily{ppl}
+
+{\color{DarkBlue} {\fontsize{30}{50} \textbf{
+Deep Reinforcement Learning
+}}}
+
+{\color{DarkBlue} {\Large
+Professor Mohammad Hossein Rohban
+}}
+}
+
+
+\vspace{20pt}
+
+{
+\fontfamily{lmss}
+
+
+{\color{RedOrange}
+{\Large
+Solution for Homework 12:
+}\\
+}
+{\color{BrickRed}
+\rule{12cm}{0.5pt}
+
+{\Huge
+
+Offline Methods
+
+}
+\rule{12cm}{0.5pt}
+}
+
+\vspace{10pt}
+
+{\color{RoyalPurple} { \small By:} } \\
+\vspace{10pt}
+
+{\color{Blue} { \LARGE Parsa Ghezelbash } } \\
+\vspace{5pt}
+{\color{RoyalBlue} { \Large 401110437} }
+
+
+\vspace*{\fill}
+\begin{center}
+\begin{tabular}{ccc}
+    \includegraphics[width=0.14\linewidth]{figs/sharif-logo.png} & \includegraphics[width=0.14\linewidth]{figs/riml-logo.png} & \includegraphics[width=0.14\linewidth]{figs/dlr-logo.png} \\
+\end{tabular}
+\end{center}
+
+
+\vspace*{-.25cm}
+
+{\color{YellowOrange} {
+\rule{10cm}{0.5pt} \\
+\vspace{2pt}
+\large Spring 2025}
+}}
+\vspace*{-1cm}
+
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\pagenumbering{gobble}
+\thispagestyle{plain}
+{\fontfamily{lmss}\selectfont {\color{BrickRed} \textbf{\tableofcontents} }}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\pagenumbering{arabic}
+
+{\fontfamily{lmss}\selectfont {\color{DarkBlue}
+
+\section{Part 1 [60-points]}
+
+\begin{enumerate}
+    % \item What is the difference between offline RL and imitation learning [5-points]?
+    \item Considering the Bellman update, explain with reasoning why value estimation suffers from overestimation in the offline framework. [10-points]
+    \[
+Q(s,a) \leftarrow r(s,a) + \mathbb{E}_{a' \sim r_{new}} [Q(s',a')]
+\]
+
+\textbf{Answer:}
+
+The Bellman update $Q(s,a) \leftarrow r(s,a) + \mathbb{E}_{a' \sim \pi_{\text{new}}} [Q(s',a')]$ suffers from overestimation in offline RL due to Extrapolation error. The expectation over $a'$ is computed using actions not present in the dataset. When $\pi_{\text{new}}$ selects OOD (out-of-distribution) actions with erroneously high $Q$-values (due to lack of data constraints), these overestimates propagate backward.
+
+\item One of the solutions to address the overestimation problem in the offline framework is CQL, whose objective function for computing the value is given below. Explain the role of each of the four terms in this objective function. [20-points]
+
+\begin{align*}
+\hat{Q}^T = \arg \min_{Q} \max_{\mu} 
+    & \alpha \mathbb{E}_{s \sim D, a \sim \mu(a|s)} [Q(s,a)] \\
+    & - \alpha \mathbb{E}_{(s,a) \sim D} [Q(s,a)] \\
+    & - \mathbb{E}_{s \sim D} [\mathcal{H}(\mu(\cdot|s))] \\
+    & + \mathbb{E}_{(s,a,s') \sim D} \left[ (Q(s,a) - (r(s,a) + \mathbb{E}[Q(s',a')]))^2 \right]
+\end{align*}
+
+\textbf{Answer:}
+
+\begin{enumerate}
+\item $\alpha \mathbb{E}_{s \sim D, a \sim \mu} [Q(s,a)]$: Penalizes OOD actions by maximizing $Q$ under adversarially chosen $\mu$ to identify overestimated actions.
+
+\item $-\alpha \mathbb{E}_{(s,a) \sim D} [Q(s,a)]$: Preserves dataset values by minimizing $Q$ on in-distribution $(s,a)$ pairs.
+
+\item $-\mathbb{E}_s [\mathcal{H}(\mu)]$: Regularizes $\mu$ by encouraging high entropy to prevent adversarial collapse to a single action.
+
+\item Bellman error term: Enforces consistency with the Bellman equation on dataset transitions.
+\end{enumerate}
+
+\item  Rewrite the optimization problem from part 3 as a minimization-only problem. [20-points]
+
+\textbf{Answer:}
+
+Solve the inner maximization over $\mu$:
+
+\[
+\max_{\mu} \left\{ \alpha \mathbb{E}_{a \sim \mu(\cdot|s)}[Q(s,a)] - \mathcal{H}(\mu(\cdot|s)) \right\}
+\]
+
+For a fixed $s$, we solve:
+$$
+\max_{\mu(\cdot|s)} \left( \sum_a \mu(a|s) Q(s, a) - \sum_a \mu(a|s) \log \mu(a|s) \right)
+$$
+subject to $\sum_a \mu(a|s) = 1$. Introduce the Lagrangian:
+$$
+\mathcal{L} = \sum_a \mu(a|s) Q(s, a) - \sum_a \mu(a|s) \log \mu(a|s) + \lambda \left(1 - \sum_a \mu(a|s)\right).
+$$
+Taking the derivative with respect to $\mu(a|s)$ and setting it to zero:
+$$
+\frac{\partial \mathcal{L}}{\partial \mu(a|s)} = Q(s, a) - \log \mu(a|s) - 1 - \lambda = 0.
+$$
+Solving for $\mu(a|s)$:
+$$
+\log \mu(a|s) = Q(s, a) - 1 - \lambda \implies \mu(a|s) = \exp(Q(s, a) - 1 - \lambda).
+$$
+Normalize to satisfy $\sum_a \mu(a|s) = 1$:
+\begin{align*}
+&\sum_a \exp(Q(s, a) - 1 - \lambda) = 1 \\
+&\implies \exp(-1 - \lambda) \sum_a \exp(Q(s, a)) = 1 \\
+&\implies \exp(-1 - \lambda) = \frac{1}{\sum_a \exp(Q(s, a))}.
+\end{align*}
+Thus, the optimal $\mu^*(a|s)$ is:
+$$
+\mu^*(a|s) = \frac{\exp(Q(s, a))}{\sum_{a'} \exp(Q(s, a'))}.
+$$
+
+Substitute $\mu^*$ back into the objective for a single state $s$:
+$$
+\mathbb{E}_{a \sim \mu^*(\cdot|s)} [Q(s, a)] + \mathcal{H}(\mu^*(\cdot|s)) = \sum_a \mu^*(a|s) Q(s, a) - \sum_a \mu^*(a|s) \log \mu^*(a|s).
+$$
+Using $\mu^*(a|s) = \frac{\exp(Q(s, a))}{Z(s)}$ where $Z(s) = \sum_a \exp(Q(s, a))$:
+\begin{align*}
+&\sum_a \frac{\exp(Q(s, a))}{Z(s)} Q(s, a)
+- \sum_a \frac{\exp(Q(s, a))}{Z(s)} \log \left( \frac{\exp(Q(s, a))}{Z(s)} \right) \\
+&= \sum_a \frac{\exp(Q(s, a))}{Z(s)} Q(s, a)
+- \sum_a \frac{\exp(Q(s, a))}{Z(s)} \left( Q(s, a) - \log Z(s) \right)
+\end{align*}
+
+Simplify:
+\begin{align*}
+&= \sum_a \frac{\exp(Q(s, a))}{Z(s)} Q(s, a)
+   - \sum_a \frac{\exp(Q(s, a))}{Z(s)} Q(s, a) \\
+&\quad + \log Z(s) \sum_a \frac{\exp(Q(s, a))}{Z(s)} \\
+&= 0 + \log Z(s) \cdot 1 \\
+&= \log Z(s)
+\end{align*}
+Thus, the maximum value is $\log \sum_a \exp(Q(s, a))$.
+
+The inner maximization (over states) yields:
+$$
+\alpha \mathbb{E}_{s \sim \mathcal{D}} \left[ \log \sum_a \exp(Q(s, a)) \right] - \alpha \mathbb{E}_{s,a \sim \mathcal{D}} [Q(s, a)].
+$$
+
+The minimization objective is:
+\begin{align*}
+\hat{Q} = \arg \min_Q & \alpha \mathbb{E}_{s \sim D} \left[ \log \sum_a \exp(\alpha Q(s,a)) \right] \\
+& - \alpha \mathbb{E}_{(s,a) \sim D} [Q(s,a)] \\
+& + \mathbb{E}_{(s,a,s') \sim D} \left[ (Q(s,a) - (r + \gamma Q(s',a'))^2 \right]
+\end{align*}
+
+\item To apply this method in model-based reinforcement learning, what changes are needed in the objective function? Rewrite the new objective function. [10-points]
+
+\textbf{Answer:}
+
+In model-based RL, replace the Bellman error term with model-generated transitions:
+\begin{align*}
+\hat{Q} = \arg \min_Q & \alpha \mathbb{E}_{s \sim D} \left[ \log \sum_a \exp(\alpha Q(s,a)) \right] \\
+& - \alpha \mathbb{E}_{(s,a) \sim D} [Q(s,a)] \\
+& + \mathbb{E}_{(s,a) \sim D} \mathbb{E}_{s' \sim T_{\phi}(\cdot|s,a)} \left[ (Q(s,a) - (r + \gamma Q(s',a')))^2 \right]
+\end{align*}
+where $T_{\phi}$ is the learned dynamics model. The conservative regularization (first two terms) remains on the real dataset states.
+
+
+\end{enumerate}
+
+
+}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+{\fontfamily{lmss}\selectfont {\color{DarkBlue}
+
+\begin{thebibliography}{9}
+
+\bibitem{Freepik}
+\href{https://www.freepik.com/free-vector/cute-artificial-intelligence-robot-isometric-icon_16717130.htm}{Cover image designed by freepik}
+
+\end{thebibliography}
+
+}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
