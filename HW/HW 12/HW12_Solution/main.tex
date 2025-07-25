@@ -207,7 +207,7 @@ The Bellman update $Q(s,a) \leftarrow r(s,a) + \mathbb{E}_{a' \sim \pi_{\text{ne
 Solve the inner maximization over $\mu$:
 
 \[
-\max_{\mu} \left\{ \alpha \mathbb{E}_{a \sim \mu(\cdot|s)}[Q(s,a)] - \mathcal{H}(\mu(\cdot|s)) \right\}
+\max_{\mu} \left\{ \alpha \mathbb{E}_{a \sim \mu(\cdot|s)}[Q(s,a)] + \mathcal{H}(\mu(\cdot|s)) \right\}
 \]
 
 For a fixed $s$, we solve:
