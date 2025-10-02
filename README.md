@@ -1,4 +1,4 @@
-# Deep Reinforcement Learning Coursework
+# DeepRL
 
 This repository is a curated portfolio of my Deep Reinforcement Learning (DRL) coursework. It includes end‑to‑end assignments, clean implementations, runnable notebooks, and compiled reports spanning foundational to advanced RL topics.
 
